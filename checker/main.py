@@ -60,7 +60,8 @@ class img_set():
     def revision(self):
         os.mkdir('..\\Revisado')
         for i in range(self.__len__()):
-
+            #if i == 3:
+                #break
             op = self.__getitem__(i)[2]
             self.plot(i)
             d = input()
