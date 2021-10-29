@@ -4,6 +4,7 @@ from PIL.ExifTags import TAGS, GPSTAGS
 import matplotlib.pyplot as plt
 import numpy as np
 import shutil 
+from shutil import copy2
 
 def getim_meta(X):
     info = X._getexif()
@@ -14,6 +15,7 @@ class img_set():
     def __init__(self, path = '..\\..\\unlabeled_images'):
         self.path = path
         self.imgs_path = os.listdir(self.path)
+        self.plane = None
         self.rd = {'arbol_13_fila_F': (29.5011, 48.7047),
                     'arbol_4_fila_F': (29.0322, 46.733),
                     'arbol_8_fila_D': (28.7721, 47.5987),
@@ -177,8 +179,8 @@ class img_set():
     
     def get_2dcoordinates(self):
         val = self.get_3dcoordinates()
-        plane = val[: ,:2]
-        return plane
+        self.plane = val[: ,:2]
+        return self.plane
     
     def to_plot(self, MAX_X = 400):
         plane = self.get_2dcoordinates()
@@ -222,13 +224,41 @@ class img_set():
             print(n_p)
             shutil.copy(op, n_p)
         myfile.close()
+    
+    def label(self):
+        try:
+            os.mkdir(os.path.join(os.curdir, 'Labeled'))
+        except:
+            pass
+        self.get_2dcoordinates()
+        myfile = open('unlabeled.txt', 'w')
+        for i in range(self.plane.shape[0]):
+            #print(str(i) + "\n")
+            flag = False
+            if i == 30:
+                break
+            for j in self.rd.keys():
+                dd = (self.plane[i][0]-self.rd[j][0])**2 + (self.plane[i][1]-self.rd[j][1])**2
+                print(dd)
+                if(dd < 0.005):
+                    copy2(self.__getitem__(i)[2], os.path.join(os.curdir, "Labeled",str(j)+".JPG"))
+                    flag = True
+                    break
+            if not flag:
+                myfile.write("%s\n" % os.path.split(self.__getitem__(i)[2])[-1])
+                    
+
+
 
             
 
 if __name__ == '__main__':
-    lab = img_set(path = '../5_agosto')
-    #lab = img_set(path = '../15_setiembre')
-    lab.plot()
+    #lab = img_set(path = '../5_agosto')
+    lab = img_set(path = '../unlabeled_images')
+    #lab.plot(0)
+    #lab.plot(1)
+    #lab.plot(1)
+    lab.label()
     print(len(lab))
         
 
