@@ -226,22 +226,25 @@ class img_set():
         myfile.close()
     
     def label(self):
+        base = os.path.split(self.path)[-1]
         try:
-            os.mkdir(os.path.join(os.curdir, 'Labeled'))
+            os.mkdir(os.path.join(os.pardir, 'Labeled1'))
+            
         except:
             pass
+        os.mkdir(os.path.join(os.pardir, 'Labeled1', base))
         self.get_2dcoordinates()
         myfile = open('unlabeled.txt', 'w')
         for i in range(self.plane.shape[0]):
             #print(str(i) + "\n")
             flag = False
-            if i == 30:
-                break
+            #if i == 30:
+            #    break
             for j in self.rd.keys():
                 dd = (self.plane[i][0]-self.rd[j][0])**2 + (self.plane[i][1]-self.rd[j][1])**2
-                print(dd)
-                if(dd < 0.005):
-                    copy2(self.__getitem__(i)[2], os.path.join(os.curdir, "Labeled",str(j)+".JPG"))
+                #print(dd)
+                if(dd < 0.008):
+                    copy2(self.__getitem__(i)[2], os.path.join(os.pardir, "Labeled1",base,base+"__"+str(j)+".JPG"))
                     flag = True
                     break
             if not flag:
@@ -254,11 +257,16 @@ class img_set():
 
 if __name__ == '__main__':
     #lab = img_set(path = '../5_agosto')
-    lab = img_set(path = '../unlabeled_images')
+    itp = os.path.join(os.pardir, "Data_Base")
+
+    for fol in os.listdir(itp):
+        lab = img_set(path=os.path.join(itp, fol))
+        lab.label()
+    #lab = img_set(path = '../unlabeled_images')
     #lab.plot(0)
     #lab.plot(1)
     #lab.plot(1)
-    lab.label()
+    
     print(len(lab))
         
 
