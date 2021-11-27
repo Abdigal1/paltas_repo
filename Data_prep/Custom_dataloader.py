@@ -1,3 +1,11 @@
+import os
+#import skimage
+import torch
+import numpy as np
+import glob
+from skimage import io
+import matplotlib.pyplot as plt
+
 class Dataset_direct(torch.utils.data.Dataset):
     def __init__(self,root_dir,ImType=['PhantomRGB', 'SenteraRGB', 'SenteraNIR'],
                  days='*',
@@ -9,8 +17,7 @@ class Dataset_direct(torch.utils.data.Dataset):
             """Data loader
             inputs:
             -root_dir(str): Directory that contains all the directories per tree
-            -ImType(list of str): type of images to be used in posterior processing
-                ['PhantomRGB', 'SenteraRGB', 'SenteraNIR']
+            -ImType(list of str): type of images to be used in posterior processing, ex: ['PhantomRGB', 'SenteraRGB', 'SenteraNIR']
             -days(list of integers): specific dates or '*' if date selection is no needed, ex: [13,19]
             -months(list of str):specific months or '*' if month selection is not needed, ex: ['junio','mayo']
             -Trees_col=(list of integers): specific numbers or '*' if date selection is no needed, ex: [13,19]
