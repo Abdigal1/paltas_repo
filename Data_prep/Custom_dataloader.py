@@ -1,5 +1,4 @@
 import os
-#import skimage
 import torch
 import numpy as np
 import glob
@@ -137,14 +136,13 @@ class Dataset_direct(torch.utils.data.Dataset):
                                     otypes=[object],
                                     signature="(),(),()->()")(self.DATA,np.array(self.ImType),idxID)
             
-            #image = io.imread(img_name)
             images=np.vectorize(self.special_imread,otypes=[object])(images_dir)
 
-            
-            sample = {'imagePRGB': images[0],
-                      'imageSRGB': images[1],
-                      'imageSNIR': images[2],
-                      'landmarks': landmarks[0]}
+            sample={}
+            for i in range(len(self.ImType)):
+                sample[self.ImType[i]]=images[i]
+
+            sample["landmarks"]=landmarks[0]
             if self.transform:
                   sample=self.transform(sample)
 

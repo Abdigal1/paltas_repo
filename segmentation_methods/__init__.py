@@ -1,0 +1,1 @@
+from segmentation_methods.Segmentation_phantom import seg_mask
