@@ -16,7 +16,6 @@ class entropy_mark_transform(object):
             print("only RGB types")
 
     def __call__(self, sample):
-        print(self.ImType)
         image, landmarks = sample[self.ImType], sample['landmarks']
 
         image=entropy_mark(image)
