@@ -30,7 +30,7 @@ class Dataset_direct(torch.utils.data.Dataset):
             """
             'Initialization'
 
-            self.toID=np.vectorize(lambda d:("_").join(np.array((os.path.split(d)[1]).split("_"))[np.array([0,1,2,-3,-1])]))
+            self.toID=np.vectorize(lambda d:(("_").join(np.array((os.path.split(d)[1]).split("_"))[np.array([0,1,2,-3,-1])])).split('.')[0])
             
             self.ImType=ImType
             
@@ -61,6 +61,12 @@ class Dataset_direct(torch.utils.data.Dataset):
                     'Date':np.array([]).astype('<U21')
                 },
                 'SenteraNIR':{
+                    'data':np.array([]).astype('<U21'),
+                    'ID':np.array([]).astype('<U21'),
+                    'Place_label':np.array([]).astype('<U21'),
+                    'Date':np.array([]).astype('<U21')
+                },
+                'SenteraMASK':{
                     'data':np.array([]).astype('<U21'),
                     'ID':np.array([]).astype('<U21'),
                     'Place_label':np.array([]).astype('<U21'),
@@ -114,6 +120,7 @@ class Dataset_direct(torch.utils.data.Dataset):
             self.landmarks_frame_PRGB = self.DATA['PhantomRGB']['data']
             self.landmarks_frame_SRGB = self.DATA['SenteraRGB']['data']
             self.landmarks_frame_SNIR = self.DATA['SenteraNIR']['data']
+            self.landmarks_frame_SMASK = self.DATA['SenteraMASK']['data']
                 
             self.transform = transform
 
