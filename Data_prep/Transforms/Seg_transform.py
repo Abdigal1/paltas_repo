@@ -3,7 +3,7 @@ import numpy as np
 
 from .segmentation_methods.segmentation_phantom import seg_mask
 
-class sentera_segmentation(object):
+class phantom_segmentation(object):
     """Crop randomly the image in a sample.
 
     Args:

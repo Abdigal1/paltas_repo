@@ -32,29 +32,35 @@ def seg_mask(img,squared=False):
     
     #if squared:
     smk=np.zeros(mask.shape)
-        
-    if (x_max-x_min)>(y_max-y_min):
-        d=np.floor((abs((y_max-y_min)-(x_max-x_min)))/2)
-        dL=d
-        dR=d+2*((abs((y_max-y_min)-(x_max-x_min)))/2-d)
-        if y_min==0:
-            y_max=int(y_max+dR+dL)
-        elif y_max==smk.shape[0] or y_max==smk.shape[1]:
-            y_min=int(y_min-dL-dR)
+    Lx=x_max-x_min
+    Ly=y_max-y_min
+    if Lx<smk.shape[1] and Ly<smk.shape[0]:
+        if (Lx)>(Ly):
+            d=np.floor((abs((Ly)-(Lx)))/2)
+            dL=d
+            dR=d+2*((abs((Ly)-(Lx)))/2-d)
+            if (y_min-dL)<=0:
+                y_max=int(y_max+dR-(y_min-dL))
+                y_min=0
+            elif (y_max+dR)>=smk.shape[1]:
+                y_min=int(y_min-(dL+((y_max+dR)-smk.shape[1])))
+                y_max=smk.shape[1]
+            else:
+                y_min=int(y_min-dL)
+                y_max=int(y_max+dR)
         else:
-            y_min=int(y_min-dL)
-            y_max=int(y_max+dR)
-    else:
-        d=np.floor((abs((y_max-y_min)-(x_max-x_min))/2))
-        dL=d
-        dR=d+2*((abs((y_max-y_min)-(x_max-x_min)))/2-d)
-        if x_min==0:
-            x_max=int(x_max+dR+dL)
-        elif x_max==smk.shape[0] or x_max==smk.shape[1]:
-            x_min=int(x_min-dL-dR)
-        else:
-            x_min=int(x_min-dL)
-            x_max=int(x_max+dR)
+            d=np.floor((abs((Ly)-(Lx))/2))
+            dL=d
+            dR=d+2*((abs((Ly)-(Lx)))/2-d)
+            if (x_min-dL)<=0:
+                x_max=int(x_max+dR-(x_min-dL))
+                x_min=0
+            elif (x_max+dR)>=smk.shape[0]:
+                x_min=int(x_min-(dL+((x_max+dR)-smk.shape[0])))
+                x_max=smk.shape[0]
+            else:
+                x_min=int(x_min-dL)
+                x_max=int(x_max+dR)
     
     if squared:
         smk[x_min:x_max,y_min:y_max]=1
