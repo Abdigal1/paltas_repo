@@ -30,7 +30,11 @@ class Dataset_direct(torch.utils.data.Dataset):
             """
             'Initialization'
 
+<<<<<<< HEAD
+            self.toID=np.vectorize(lambda d:(("_").join(np.array((os.path.split(d)[1]).split("_"))[np.array([0,1,2,-3,-1])])).split('.')[0])
+=======
             self.toID=np.vectorize(lambda d:(("_").join(np.array((os.path.split(d)[1]).split("_"))[np.array([0,1,2,-3,-1])])).split(".")[0])
+>>>>>>> 45486b9cb0c4d958322c822b64ba09593f3ca2d4
             
             self.ImType=ImType
             
