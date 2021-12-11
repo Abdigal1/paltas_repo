@@ -30,11 +30,7 @@ class Dataset_direct(torch.utils.data.Dataset):
             """
             'Initialization'
 
-<<<<<<< HEAD
-            self.toID=np.vectorize(lambda d:(("_").join(np.array((os.path.split(d)[1]).split("_"))[np.array([0,1,2,-3,-1])])).split('.')[0])
-=======
             self.toID=np.vectorize(lambda d:(("_").join(np.array((os.path.split(d)[1]).split("_"))[np.array([0,1,2,-3,-1])])).split(".")[0])
->>>>>>> 45486b9cb0c4d958322c822b64ba09593f3ca2d4
             
             self.ImType=ImType
             
@@ -130,7 +126,7 @@ class Dataset_direct(torch.utils.data.Dataset):
 
     def __len__(self):
         #return len(self.landmarks_frame_PRGB),len(self.landmarks_frame_SRGB),len(self.landmarks_frame_SNIR)
-        return len(self.landmarks_frame_PRGB)
+        return len(self.aID)
 
     def __getitem__(self, idx):
             'Generates one sample of data'
@@ -154,7 +150,7 @@ class Dataset_direct(torch.utils.data.Dataset):
                 sample[self.ImType[i]]=images[i]
 
             sample["Date"]=("_").join(idxID.split("_")[:3])
-            sample["landmarks"]=landmarks[0]
+            sample["landmarks"]=landmarks[0][0]
             if self.transform:
                   sample=self.transform(sample)
 

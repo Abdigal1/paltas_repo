@@ -1,0 +1,136 @@
+from tqdm import tqdm
+import numpy as np
+import torch
+import os
+
+def train(model,optimizer,dataloader,use_cuda,loss_function):
+    loss_d=[]
+    bce_d=[]
+    kld_d=[]
+    device="cpu"
+    if use_cuda:
+        device="cuda"
+    for idx, batch in tqdm(enumerate(dataloader),desc="instances"):
+        r_img,mu,sig=model(batch["PhantomRGB"].to(device))
+        loss,bce,kld=loss_function(r_img,batch["PhantomRGB"].to(device),mu,sig)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        
+        tqdm.write(
+            "total loss {loss:.4f}\t BCE {bce:.4f}\t KLD {kld:.4f}".format(
+                loss=loss.item(),
+                bce=bce.item(),
+                kld=kld.item()
+        )
+        )
+        
+        #SAVE TRAIN DATA
+        loss_d.append(loss)
+        bce_d.append(bce)
+        kld_d.append(kld)
+    return loss_d,bce_d,kld_d
+
+
+def test(model,dataloader,use_cuda,loss_function):
+    loss_d=[]
+    bce_d=[]
+    kld_d=[]
+    device="cpu"
+    if use_cuda:
+        device="cuda"
+    for idx, batch in tqdm(enumerate(dataloader),desc="Test"):
+        r_img,mu,sig=model(batch["PhantomRGB"].to(device))
+        loss,bce,kld=loss_function(r_img,batch["PhantomRGB"].to(device),mu,sig)
+        
+        tqdm.write(
+            "total loss {loss:.4f}\t BCE {bce:.4f}\t KLD {kld:.4f}".format(
+                loss=loss.item(),
+                bce=bce.item(),
+                kld=kld.item()
+        )
+        )
+        
+        #SAVE TEST DATA
+        loss_d.append(loss)
+        bce_d.append(bce)
+        kld_d.append(kld)
+    return loss_d,bce_d,kld_d
+
+def train_test(model,optimizer,dataloader_train,dataloader_test,use_cuda,loss_function,epochs,data_train_dir):
+    epoch_loss_train=[]
+    epoch_bce_train=[]
+    epoch_kld_train=[]
+
+    epoch_loss_test=[]
+    epoch_bce_test=[]
+    epoch_kld_test=[]
+    
+    best_result=0
+
+    for epoch in tqdm(range(epochs),desc="Epoch"):
+        loss_d,bce_d,kld_d=train(model,optimizer,dataloader_train,use_cuda,loss_function)
+    
+        epoch_loss_train.append(list(np.mean(np.array(loss_d))))
+        epoch_bce_train.append(list(np.mean(np.array(bce_d))))
+        epoch_kld_train.append(list(np.mean(np.array(kld_d))))
+    
+        loss_d,bce_d,kld_d=test(model,dataloader_test,use_cuda,loss_function)
+        
+        if (np.mean(np.array(loss_d))[0])>best_result:
+            best_result=(np.mean(np.array(loss_d))[0])
+            best_model=model.state_dict()
+    
+        epoch_loss_test.append(list(np.mean(np.array(loss_d))))
+        epoch_bce_test.append(list(np.mean(np.array(bce_d))))
+        epoch_kld_test.append(list(np.mean(np.array(kld_d))))
+        
+    
+    return epoch_loss_train,epoch_bce_train,epoch_kld_train,epoch_loss_test,epoch_bce_test,epoch_kld_test,best_model
+
+def K_fold_train(model,
+                dataloader_train,
+                dataloader_test,
+                epochs,
+                batch_size,
+                use_cuda,
+                folds,
+                data_train_dir,
+                loss_fn):
+    fold_loss={}
+    fold_bce={}
+    fold_kld={}
+    for fold in tqdm(range(folds),desc="folds"):
+        ed=model
+        #optimizer
+        optimizer=torch.optim.Adam(ed.parameters(),lr=1e-3)
+
+        #Epochs
+        epoch_loss_train,epoch_bce_train,epoch_kld_train,epoch_loss_test,epoch_bce_test,epoch_kld_test,best_model=train_test(
+            model=model,
+            optimizer=optimizer,
+            dataloader_train=dataloader_train,
+            dataloader_test=dataloader_test,
+            use_cuda=use_cuda,
+            loss_function=loss_fn,
+            epochs=epochs,
+            data_train_dir=data_train_dir
+        )
+
+        fold_loss[fold]={"train":epoch_loss_train,
+                        "valid":epoch_loss_test
+                            }
+
+        fold_bce[fold]={"train":epoch_bce_train,
+                        "valid":epoch_bce_test
+                            }
+
+        fold_kld[fold]={"train":epoch_kld_train,
+                        "valid":epoch_kld_test
+                            }
+        
+        torch.save(best_model,"{fname}.pt".format(fname=os.path.join(data_train_dir,"best"+str(fold))))
+
+    np.save(os.path.join(data_train_dir,"loss_results"+'.npy',fold_loss))
+    np.save(os.path.join(data_train_dir,"bce_results"+'.npy',fold_bce))
+    np.save(os.path.join(data_train_dir,"kld_results"+'.npy',fold_kld))
