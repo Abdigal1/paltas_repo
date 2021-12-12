@@ -4,6 +4,7 @@ import numpy as np
 import glob
 from skimage import io
 import matplotlib.pyplot as plt
+import PIL.Image
 
 class Dataset_direct(torch.utils.data.Dataset):
     def __init__(self,root_dir,ImType=['PhantomRGB', 'SenteraRGB', 'SenteraNIR'],
@@ -147,9 +148,12 @@ class Dataset_direct(torch.utils.data.Dataset):
 
             sample={}
             for i in range(len(self.ImType)):
+                print(images_dir[i][0])
                 sample[self.ImType[i]]=images[i]
+                sample[self.ImType[i]+"_metadata"]=self.get_metadata(images_dir[i][0])
 
             sample["Date"]=("_").join(idxID.split("_")[:3])
+            sample["Place"]=("_").join(idxID.split("_")[3:])
             sample["landmarks"]=landmarks[0][0]
             if self.transform:
                   sample=self.transform(sample)
@@ -203,3 +207,17 @@ class Dataset_direct(torch.utils.data.Dataset):
             Suf=Map_fils[np.vectorize(lambda ran,n:n in ran,signature="(j),()->()")(Map_fils[:,:-1],Num),-1]
             Type=(Type+"_"+Suf)[0]
         return Type
+
+    def get_metadata(self,direc):
+        img=PIL.Image.open(direc)
+        exif = {
+            PIL.ExifTags.TAGS[k]: v
+            for k, v in img._getexif().items()
+            if k in PIL.ExifTags.TAGS
+        }
+        exif['GPSInfo'] = {
+            PIL.ExifTags.GPSTAGS[k]: v
+            for k, v in exif['GPSInfo'].items()
+            if k in PIL.ExifTags.GPSTAGS 
+        }
+        return exif
