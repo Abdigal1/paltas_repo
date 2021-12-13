@@ -107,10 +107,12 @@ def compute_ndvi(rgb_img, nir_img, mask, statistic=True):
     
     ref_matched_kpts = np.float32([kp1[m[0].queryIdx].pt for m in good_matches])
     sensed_matched_kpts = np.float32([kp2[m[0].trainIdx].pt for m in good_matches])
-    
-    H, status = cv2.findHomography(sensed_matched_kpts, ref_matched_kpts, cv2.RANSAC,80.0)
-    nir_img = cv2.warpPerspective(nir_img, H, (rgb_img.shape[1], rgb_img.shape[0]))
-    
+    gf=True
+    try:
+        H, status = cv2.findHomography(sensed_matched_kpts, ref_matched_kpts, cv2.RANSAC,80.0)
+        nir_img = cv2.warpPerspective(nir_img, H, (rgb_img.shape[1], rgb_img.shape[0]))
+    except:
+        gf=False
     ##Adjustment
     
     #====================SKIMAGE VERSION
@@ -137,11 +139,11 @@ def compute_ndvi(rgb_img, nir_img, mask, statistic=True):
         #imout = np.zeros_like(NDVI)
         #imout[mask] = NDVI[mask]
         #return imout
-        return cv2.bitwise_and(NDVI, NDVI, mask=mask)
+        return cv2.bitwise_and(NDVI, NDVI, mask=(mask*255).astype(np.uint8)), gf
     else:
         mask = mask.astype(bool)
         mndvi = NDVI[mask]
-        return [mndvi.mean(), mndvi.std()]
+        return mndvi.mean(), mndvi.std(), gf
 
 class texture_desc():
     """
@@ -166,8 +168,10 @@ class texture_desc():
             fmask = fmask.astype(np.bool_)
             rgb = rgb[::-1]
             nir = nir[::-1]
-            ndvi = compute_ndvi(rgb,nir, fmask, statistic=False)
+            ndvi, gf = compute_ndvi(rgb,nir, fmask, statistic=False)
             img = ((ndvi+1)*255/2).astype(np.uint8)
+            #plt.imshow(img)
+            
         
         mask = sample['SenteraMASK']
         mask = mask.astype(bool)
@@ -182,76 +186,17 @@ class texture_desc():
             
         glcm = greycomatrix(img, distances=[15, 30, 50], angles=[0, np.pi/2], levels=256)
         
-        return {('Sentera'+self.descriptor): greycoprops(glcm, self.descriptor), 'landmarks': sample['landmarks'], 'Date':sample['Date']}
+        return {('Sentera'+self.descriptor): greycoprops(glcm, self.descriptor), 'landmarks': sample['landmarks'], 'Date':sample['Date'], 'gf':gf}
  
 
 DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,volume=Paltas_DataBase/Data_Base_v2"
 
-d_t = transforms.Compose([texture_desc('correlation')])
-datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK'],Intersec=False, transform=d_t)
+d_t = transforms.Compose([texture_desc('correlation', from_rgb=False)])
+datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK', 'SenteraNIR'],Intersec=False, transform=d_t)
 print('Data cargada')
 
 out = []
 for i, item in tqdm(enumerate(datab)):
-    out.append(item)
-with open('senterargbcorrelation.pkl', 'wb') as f:
-    pickle.dump(out, f)
+    with open('senteranircorrelation.pkl', 'ab') as f:
+        pickle.dump(item, f)
 
-
-
-DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,volume=Paltas_DataBase/Data_Base_v2"
-
-d_t = transforms.Compose([texture_desc('energy')])
-datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK'],Intersec=False, transform=d_t)
-print('Data cargada')
-out = []
-for i, item in tqdm(enumerate(datab)):
-    out.append(item)
-with open('senterargbenergy.pkl', 'wb') as f:
-    pickle.dump(out, f)
-
-DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,volume=Paltas_DataBase/Data_Base_v2"
-
-d_t = transforms.Compose([texture_desc('ASM')])
-datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK'],Intersec=False, transform=d_t)
-print('Data cargada')
-out = []
-for i, item in tqdm(enumerate(datab)):
-    out.append(item)
-with open('senterargbasm.pkl', 'wb') as f:
-    pickle.dump(out, f)
-
-DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,volume=Paltas_DataBase/Data_Base_v2"
-
-d_t = transforms.Compose([texture_desc('homogeneity')])
-datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK'],Intersec=False, transform=d_t)
-print('Data cargada')
-out = []
-for i, item in tqdm(enumerate(datab)):
-    out.append(item)
-with open('senterargbhomogeneity.pkl', 'wb') as f:
-    pickle.dump(out, f)
-
-DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,volume=Paltas_DataBase/Data_Base_v2"
-
-d_t = transforms.Compose([texture_desc('dissimilarity')])
-datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK'],Intersec=False, transform=d_t)
-print('Data cargada')
-out = []
-for i, item in tqdm(enumerate(datab)):
-    out.append[item]
-
-with open('senterargbdissimilarity.pkl', 'wb') as f:
-    pickle.dump(out, f)
-
-
-DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,volume=Paltas_DataBase/Data_Base_v2"
-
-d_t = transforms.Compose([texture_desc('contrast')])
-datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK'],Intersec=False, transform=d_t)
-print('Data cargada')
-out = []
-for i, item in tqdm(enumerate(datab)):
-    out.append[item]
-with open('senterargbcontrast.pkl', 'wb') as f:
-    pickle.dump(out, f)

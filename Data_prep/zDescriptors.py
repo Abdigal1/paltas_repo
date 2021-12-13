@@ -184,7 +184,7 @@ class texture_desc():
         
         return {('Sentera'+self.descriptor): greycoprops(glcm, self.descriptor), 'landmarks': sample['landmarks'], 'Date':sample['Date']}
  
-
+'''
 DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,volume=Paltas_DataBase/Data_Base_v2"
 
 d_t = transforms.Compose([texture_desc('correlation')])
@@ -231,15 +231,16 @@ for i, item in tqdm(enumerate(datab)):
     out.append(item)
 with open('senterargbhomogeneity.pkl', 'wb') as f:
     pickle.dump(out, f)
-
+'''
 DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,volume=Paltas_DataBase/Data_Base_v2"
 
 d_t = transforms.Compose([texture_desc('dissimilarity')])
 datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK'],Intersec=False, transform=d_t)
 print('Data cargada')
 out = []
+print('Disimilarity')
 for i, item in tqdm(enumerate(datab)):
-    out.append[item]
+    out.append(item)
 
 with open('senterargbdissimilarity.pkl', 'wb') as f:
     pickle.dump(out, f)
@@ -252,6 +253,6 @@ datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK'],Intersec=F
 print('Data cargada')
 out = []
 for i, item in tqdm(enumerate(datab)):
-    out.append[item]
+    out.append(item)
 with open('senterargbcontrast.pkl', 'wb') as f:
     pickle.dump(out, f)
