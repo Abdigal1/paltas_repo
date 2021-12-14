@@ -148,7 +148,7 @@ class Dataset_direct(torch.utils.data.Dataset):
 
             sample={}
             for i in range(len(self.ImType)):
-                print(images_dir[i][0])
+                #print(images_dir[i][0])
                 sample[self.ImType[i]]=images[i]
                 sample[self.ImType[i]+"_metadata"]=self.get_metadata(images_dir[i][0])
 

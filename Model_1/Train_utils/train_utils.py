@@ -84,13 +84,16 @@ def train_test(model,optimizer,dataloader_train,dataloader_test,use_cuda,loss_fu
         epoch_loss_test.append(list(np.mean(np.array(loss_d))))
         epoch_bce_test.append(list(np.mean(np.array(bce_d))))
         epoch_kld_test.append(list(np.mean(np.array(kld_d))))
+
+        tqdm.write("epoch {epoch:.2f}%".format(
+                    epoch=epoch
+                    ))
         
     
     return epoch_loss_train,epoch_bce_train,epoch_kld_train,epoch_loss_test,epoch_bce_test,epoch_kld_test,best_model
 
 def K_fold_train(model,
-                dataloader_train,
-                dataloader_test,
+                dataset,
                 epochs,
                 batch_size,
                 use_cuda,
@@ -100,6 +103,15 @@ def K_fold_train(model,
     fold_loss={}
     fold_bce={}
     fold_kld={}
+
+    #Shuffle data
+    train_s=int((len(dataset))*0.7)
+    test_s=int(len(dataset)-train_s)
+    train_set, test_set = torch.utils.data.random_split(dataset, [train_s, test_s])
+
+    dataloader_train=torch.utils.data.DataLoader(train_set,batch_size=5,shuffle=True,num_workers=4)
+    dataloader_test=torch.utils.data.DataLoader(test_set,batch_size=5,shuffle=True,num_workers=4)
+
     for fold in tqdm(range(folds),desc="folds"):
         ed=model
         #optimizer
@@ -130,6 +142,10 @@ def K_fold_train(model,
                             }
         
         torch.save(best_model,"{fname}.pt".format(fname=os.path.join(data_train_dir,"best"+str(fold))))
+
+        tqdm.write("fold {fold:.2f}%".format(
+                    fold=fold
+                    ))
 
     np.save(os.path.join(data_train_dir,"loss_results"+'.npy',fold_loss))
     np.save(os.path.join(data_train_dir,"bce_results"+'.npy',fold_bce))
