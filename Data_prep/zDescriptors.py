@@ -182,77 +182,70 @@ class texture_desc():
             
         glcm = greycomatrix(img, distances=[15, 30, 50], angles=[0, np.pi/2], levels=256)
         
-        return {('Sentera'+self.descriptor): greycoprops(glcm, self.descriptor), 'landmarks': sample['landmarks'], 'Date':sample['Date']}
+        return {('Sentera'+self.descriptor): greycoprops(glcm, self.descriptor), 'landmarks': sample['landmarks'], 'Date':sample['Date'], 'Place':sample['Place']}
  
-'''
-DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,volume=Paltas_DataBase/Data_Base_v2"
+
+DB="\\\MYCLOUDPR4100\\Paltas_DataBase\\Data_Base_v2"
 
 d_t = transforms.Compose([texture_desc('correlation')])
 datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK'],Intersec=False, transform=d_t)
 print('Data cargada')
 
-out = []
+
 for i, item in tqdm(enumerate(datab)):
-    out.append(item)
-with open('senterargbcorrelation.pkl', 'wb') as f:
-    pickle.dump(out, f)
+    with open('senterargbcorrelation_v2.pkl', 'ab') as f:
+        pickle.dump(item, f)
 
 
 
-DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,volume=Paltas_DataBase/Data_Base_v2"
+DB="\\\MYCLOUDPR4100\\Paltas_DataBase\\Data_Base_v2"
 
 d_t = transforms.Compose([texture_desc('energy')])
 datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK'],Intersec=False, transform=d_t)
 print('Data cargada')
-out = []
-for i, item in tqdm(enumerate(datab)):
-    out.append(item)
-with open('senterargbenergy.pkl', 'wb') as f:
-    pickle.dump(out, f)
 
-DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,volume=Paltas_DataBase/Data_Base_v2"
+for i, item in tqdm(enumerate(datab)):
+    with open('senterargbenergy_v2.pkl', 'ab') as f:
+        pickle.dump(item, f)
+
+DB="\\\MYCLOUDPR4100\\Paltas_DataBase\\Data_Base_v2"
 
 d_t = transforms.Compose([texture_desc('ASM')])
 datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK'],Intersec=False, transform=d_t)
 print('Data cargada')
-out = []
-for i, item in tqdm(enumerate(datab)):
-    out.append(item)
-with open('senterargbasm.pkl', 'wb') as f:
-    pickle.dump(out, f)
 
-DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,volume=Paltas_DataBase/Data_Base_v2"
+for i, item in tqdm(enumerate(datab)):
+    with open('senterargbasm_v2.pkl', 'ab') as f:
+        pickle.dump(item, f)
+
+DB="\\\MYCLOUDPR4100\\Paltas_DataBase\\Data_Base_v2"
 
 d_t = transforms.Compose([texture_desc('homogeneity')])
 datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK'],Intersec=False, transform=d_t)
 print('Data cargada')
-out = []
+
 for i, item in tqdm(enumerate(datab)):
-    out.append(item)
-with open('senterargbhomogeneity.pkl', 'wb') as f:
-    pickle.dump(out, f)
-'''
-DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,volume=Paltas_DataBase/Data_Base_v2"
+    with open('senterargbhomogeneity_v2.pkl', 'ab') as f:
+        pickle.dump(item, f)
+
+DB="\\\MYCLOUDPR4100\\Paltas_DataBase\\Data_Base_v2"
 
 d_t = transforms.Compose([texture_desc('dissimilarity')])
 datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK'],Intersec=False, transform=d_t)
 print('Data cargada')
-out = []
+
 print('Disimilarity')
 for i, item in tqdm(enumerate(datab)):
-    out.append(item)
-
-with open('senterargbdissimilarity.pkl', 'wb') as f:
-    pickle.dump(out, f)
+    with open('senterargbdissimilarity_v2.pkl', 'ab') as f:
+        pickle.dump(item, f)
 
 
-DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,volume=Paltas_DataBase/Data_Base_v2"
+DB="\\\MYCLOUDPR4100\\Paltas_DataBase\\Data_Base_v2"
 
 d_t = transforms.Compose([texture_desc('contrast')])
 datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK'],Intersec=False, transform=d_t)
 print('Data cargada')
-out = []
+
 for i, item in tqdm(enumerate(datab)):
-    out.append(item)
-with open('senterargbcontrast.pkl', 'wb') as f:
-    pickle.dump(out, f)
+    with open('senterargbcontrast_v2.pkl', 'ab') as f:
+        pickle.dump(item, f)

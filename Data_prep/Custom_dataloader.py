@@ -13,7 +13,8 @@ class Dataset_direct(torch.utils.data.Dataset):
                  Trees_col='*',
                  Trees_fil='*',
                  Intersec=False,
-                 transform=None):
+                 transform=None,
+                 retrieve_img=True):
             """Data loader
             inputs:
             -root_dir(str): Directory that contains all the directories per tree
@@ -34,6 +35,7 @@ class Dataset_direct(torch.utils.data.Dataset):
             self.toID=np.vectorize(lambda d:(("_").join(np.array((os.path.split(d)[1]).split("_"))[np.array([0,1,2,-3,-1])])).split(".")[0])
             
             self.ImType=ImType
+            self.retrieve_img=retrieve_img
             
             Map_cols={'A':'N',
                     'B':'P',
@@ -144,14 +146,20 @@ class Dataset_direct(torch.utils.data.Dataset):
                                     otypes=[object],
                                     signature="(),(),()->()")(self.DATA,np.array(self.ImType),idxID)
             
-            images=np.vectorize(self.special_imread,otypes=[object])(images_dir)
+            if self.retrieve_img:
+                images=np.vectorize(self.special_imread,otypes=[object])(images_dir)
 
             sample={}
             for i in range(len(self.ImType)):
+                #print("image")
                 #print(images_dir[i][0])
-                sample[self.ImType[i]]=images[i]
-                sample[self.ImType[i]+"_metadata"]=self.get_metadata(images_dir[i][0])
-
+                if self.retrieve_img:
+                    sample[self.ImType[i]]=images[i]
+                    if (images[i].shape!=(1,1))and(images_dir[i][0].endswith(".jpg")):
+                        sample[self.ImType[i]+"_metadata"]=self.get_metadata(images_dir[i][0])
+                    else:
+                        sample[self.ImType[i]+"_metadata"]=None
+                
             sample["Date"]=("_").join(idxID.split("_")[:3])
             sample["Place"]=("_").join(idxID.split("_")[3:])
             sample["landmarks"]=landmarks[0][0]
