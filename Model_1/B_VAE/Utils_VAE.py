@@ -35,7 +35,7 @@ class s_deconv(nn.Module):
 class b_encoder_conv(nn.Module):
     def __init__(self,image_channels=3,repr_sizes=[32,64,128,256]):
         super(b_encoder_conv, self).__init__()
-        self.repr_sizes=[3]+repr_sizes
+        self.repr_sizes=[image_channels]+repr_sizes
         
         self.im_layers=nn.ModuleList(
             [
@@ -54,7 +54,7 @@ class b_encoder_conv(nn.Module):
 class b_decoder_conv(nn.Module):
     def __init__(self,image_channels=3,repr_sizes=[32,64,128,256]):
         super(b_decoder_conv,self).__init__()
-        self.repr_sizes=[3]+repr_sizes
+        self.repr_sizes=[image_channels]+repr_sizes
         self.repr_sizes.reverse()
         
         self.im_layers=nn.ModuleList(

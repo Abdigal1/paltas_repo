@@ -22,6 +22,7 @@ def main():
     #DB="//MYCLOUDPR4100/Paltas_DataBase/Data_Base_v2"
     d_tt=transforms.Compose([
         phantom_segmentation(False),
+        rgb_normalize(ImType=['PhantomRGB']),
         multi_image_resize(ImType=['PhantomRGB'],size=(1000,1000)),
         multi_ToTensor(ImType=['PhantomRGB']),
         output_transform()

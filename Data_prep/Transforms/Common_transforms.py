@@ -3,6 +3,28 @@ import numpy as np
 import torch
 from torchvision import transforms
 
+class rgb_normalize(object):
+    """Crop randomly the image in a sample.
+
+    Args:
+        regular (bool): regular o non regular segmentation mask
+    output:
+
+    """
+
+    def __init__(self, ImType=["PhantomRGB"]):
+        assert isinstance(ImType, list)
+        self.ImType=ImType
+
+    def __call__(self, sample):
+        #For Imtype
+        for Type in self.ImType:
+            # transform sample and save
+            sample[Type]=sample[Type]/255
+
+
+        return sample
+
 class multi_image_resize(object):
     """Crop randomly the image in a sample.
 
@@ -22,7 +44,7 @@ class multi_image_resize(object):
         #For Imtype
         for Type in self.ImType:
             # transform sample and save
-            sample[Type]=resize(sample[Type],self.size).astype('uint8')
+            sample[Type]=resize(sample[Type],self.size)
 
 
         return sample
