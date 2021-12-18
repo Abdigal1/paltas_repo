@@ -23,12 +23,30 @@ class s_conv(nn.Module):
         self.act=nn.ReLU()
     def forward(self,x):
         return self.act(self.Conv(x))
+
+class pool_conv(nn.Module):
+    def __init__(self,repr_size_in,repr_size_out):
+        super(s_conv, self).__init__()
+        self.Conv=nn.Conv2d(repr_size_in,repr_size_out,kernel_size=3,stride=2,padding=1)
+        self.act=nn.ReLU()
+        self.pool=nn.MaxPool2d()#--------------------------------------------------------------------------------------------
+    def forward(self,x):
+        return self.act(self.Conv(x))
     
 class s_deconv(nn.Module):
     def __init__(self,repr_size_in,repr_size_out):
         super(s_deconv, self).__init__()
         self.Conv=nn.ConvTranspose2d(repr_size_in,repr_size_out,kernel_size=2,stride=2)
         self.act=nn.ReLU()
+    def forward(self,x):
+        return self.act(self.Conv(x))
+
+class unpool_deconv(nn.Module):
+    def __init__(self,repr_size_in,repr_size_out):
+        super(s_deconv, self).__init__()
+        self.Conv=nn.ConvTranspose2d(repr_size_in,repr_size_out,kernel_size=2,stride=2)
+        self.act=nn.ReLU()
+        self.unpool=nn.MaxUnpool2d()#--------------------------------------------------------------------------------------------
     def forward(self,x):
         return self.act(self.Conv(x))
 
