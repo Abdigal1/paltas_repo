@@ -66,7 +66,7 @@ def reg(rgb_img, nir_img):
     nir_ = nir_[:, :, 0]
     
     #akaze = cv2.xfeatures2d.SIFT_create()
-    akaze = cv2.xfeatures2d.SURF_create() #python version mismatch
+    akaze = cv2.xfeatures2d.SIFT_create() #python version mismatch
     kp1, des1 = akaze.detectAndCompute(rgb_, None)
     kp2, des2 = akaze.detectAndCompute(nir_, None)
     
@@ -92,7 +92,7 @@ def compute_ndvi(rgb_img, nir_img, mask, statistic=True):
     nir_ = cv2.resize(nir_img, (4000, 3000))
     nir_ = nir_[:, :, 0]
     
-    akaze = cv2.xfeatures2d.SURF_create()
+    akaze = cv2.xfeatures2d.SIFT_create()
     
     kp1, des1 = akaze.detectAndCompute(rgb_, None)
     kp2, des2 = akaze.detectAndCompute(nir_, None)
@@ -137,7 +137,7 @@ def compute_ndvi(rgb_img, nir_img, mask, statistic=True):
         #imout = np.zeros_like(NDVI)
         #imout[mask] = NDVI[mask]
         #return imout
-        return cv2.bitwise_and(NDVI, NDVI, mask=mask)
+        return cv2.bitwise_and(NDVI, NDVI, mask=(mask*255).astype(np.uint8))
     else:
         mask = mask.astype(bool)
         mndvi = NDVI[mask]
@@ -187,65 +187,65 @@ class texture_desc():
 
 DB="\\\MYCLOUDPR4100\\Paltas_DataBase\\Data_Base_v2"
 
-d_t = transforms.Compose([texture_desc('correlation')])
-datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK'],Intersec=False, transform=d_t)
+d_t = transforms.Compose([texture_desc('correlation',from_rgb=False)])
+datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK','SenteraNIR'],Intersec=False, transform=d_t)
 print('Data cargada')
 
 
 for i, item in tqdm(enumerate(datab)):
-    with open('senterargbcorrelation_v2.pkl', 'ab') as f:
+    with open('senteranircorrelation_v2.pkl', 'ab') as f:
         pickle.dump(item, f)
 
 
 
 DB="\\\MYCLOUDPR4100\\Paltas_DataBase\\Data_Base_v2"
 
-d_t = transforms.Compose([texture_desc('energy')])
-datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK'],Intersec=False, transform=d_t)
+d_t = transforms.Compose([texture_desc('energy',from_rgb=False)])
+datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK','SenteraNIR'],Intersec=False, transform=d_t)
 print('Data cargada')
 
 for i, item in tqdm(enumerate(datab)):
-    with open('senterargbenergy_v2.pkl', 'ab') as f:
+    with open('senteranirenergy_v2.pkl', 'ab') as f:
         pickle.dump(item, f)
 
 DB="\\\MYCLOUDPR4100\\Paltas_DataBase\\Data_Base_v2"
 
-d_t = transforms.Compose([texture_desc('ASM')])
-datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK'],Intersec=False, transform=d_t)
+d_t = transforms.Compose([texture_desc('ASM',from_rgb=False)])
+datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK','SenteraNIR'],Intersec=False, transform=d_t)
 print('Data cargada')
 
 for i, item in tqdm(enumerate(datab)):
-    with open('senterargbasm_v2.pkl', 'ab') as f:
+    with open('senteranirasm_v2.pkl', 'ab') as f:
         pickle.dump(item, f)
 
 DB="\\\MYCLOUDPR4100\\Paltas_DataBase\\Data_Base_v2"
 
-d_t = transforms.Compose([texture_desc('homogeneity')])
-datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK'],Intersec=False, transform=d_t)
+d_t = transforms.Compose([texture_desc('homogeneity',from_rgb=False)])
+datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK','SenteraNIR'],Intersec=False, transform=d_t)
 print('Data cargada')
 
 for i, item in tqdm(enumerate(datab)):
-    with open('senterargbhomogeneity_v2.pkl', 'ab') as f:
+    with open('senteranirhomogeneity_v2.pkl', 'ab') as f:
         pickle.dump(item, f)
 
 DB="\\\MYCLOUDPR4100\\Paltas_DataBase\\Data_Base_v2"
 
-d_t = transforms.Compose([texture_desc('dissimilarity')])
-datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK'],Intersec=False, transform=d_t)
+d_t = transforms.Compose([texture_desc('dissimilarity',from_rgb=False)])
+datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK','SenteraNIR'],Intersec=False, transform=d_t)
 print('Data cargada')
 
 print('Disimilarity')
 for i, item in tqdm(enumerate(datab)):
-    with open('senterargbdissimilarity_v2.pkl', 'ab') as f:
+    with open('senteranirdissimilarity_v2.pkl', 'ab') as f:
         pickle.dump(item, f)
 
 
 DB="\\\MYCLOUDPR4100\\Paltas_DataBase\\Data_Base_v2"
 
-d_t = transforms.Compose([texture_desc('contrast')])
-datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK'],Intersec=False, transform=d_t)
+d_t = transforms.Compose([texture_desc('contrast',from_rgb=False)])
+datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK','SenteraNIR'],Intersec=False, transform=d_t)
 print('Data cargada')
 
 for i, item in tqdm(enumerate(datab)):
-    with open('senterargbcontrast_v2.pkl', 'ab') as f:
+    with open('senteranircontrast_v2.pkl', 'ab') as f:
         pickle.dump(item, f)
