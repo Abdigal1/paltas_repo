@@ -18,11 +18,16 @@ from Transforms import output_transform
 import torch
 
 def main():
-    DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,user=paltas,volume=Paltas_DataBase/Data_Base"
+    DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,user=paltas,volume=Paltas_DataBase/Data_Base_v2"
     #DB="//MYCLOUDPR4100/Paltas_DataBase/Data_Base_v2"
     d_tt=transforms.Compose([
         phantom_segmentation(False),
+<<<<<<< HEAD
+        rgb_normalize(ImType=['PhantomRGB']),
         multi_image_resize(ImType=['PhantomRGB'],size=(1000,1000)),
+=======
+        multi_image_resize(ImType=['PhantomRGB'],size=(100,100)),
+>>>>>>> 5a07757ba27d80fab01224eff1c9209a3422fa7f
         multi_ToTensor(ImType=['PhantomRGB']),
         output_transform()
         ])
@@ -36,21 +41,21 @@ def main():
     pth=os.path.join(str(pathlib.Path().absolute()),"results",T_ID)
     print(pth)
 
-    model=b_encodeco(image_dim=int(1000),
+    model=b_encodeco(image_dim=int(100),
                  image_channels=3,
-                 repr_sizes=[32,64,256],
+                 repr_sizes=[32,256],
                  layer_sizes=[],
-                 latent_space_size=10,
+                 latent_space_size=5,
                 device=device)
     model.to(device)
     print("model loaded")
 
     K_fold_train(model=model,
                 dataset=datab,
-                epochs=100,
-                batch_size=2,
+                epochs=3,
+                batch_size=200,
                 use_cuda=True,
-                folds=5,
+                folds=3,
                 data_train_dir=pth,
                 loss_fn=loss_fn
      )

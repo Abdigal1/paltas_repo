@@ -26,9 +26,9 @@ def train(model,optimizer,dataloader,use_cuda,loss_function):
         )
         
         #SAVE TRAIN DATA
-        loss_d.append(loss)
-        bce_d.append(bce)
-        kld_d.append(kld)
+        loss_d.append(loss.item())
+        bce_d.append(bce.item())
+        kld_d.append(kld.item())
     return loss_d,bce_d,kld_d
 
 
@@ -52,9 +52,9 @@ def test(model,dataloader,use_cuda,loss_function):
         )
         
         #SAVE TEST DATA
-        loss_d.append(loss)
-        bce_d.append(bce)
-        kld_d.append(kld)
+        loss_d.append(loss.item())
+        bce_d.append(bce.item())
+        kld_d.append(kld.item())
     return loss_d,bce_d,kld_d
 
 def train_test(model,optimizer,dataloader_train,dataloader_test,use_cuda,loss_function,epochs,data_train_dir):
@@ -71,19 +71,20 @@ def train_test(model,optimizer,dataloader_train,dataloader_test,use_cuda,loss_fu
     for epoch in tqdm(range(epochs),desc="Epoch"):
         loss_d,bce_d,kld_d=train(model,optimizer,dataloader_train,use_cuda,loss_function)
     
-        epoch_loss_train.append(list(np.mean(np.array(loss_d))))
-        epoch_bce_train.append(list(np.mean(np.array(bce_d))))
-        epoch_kld_train.append(list(np.mean(np.array(kld_d))))
+        epoch_loss_train.append(np.mean(np.array(loss_d)))
+        epoch_bce_train.append(np.mean(np.array(bce_d)))
+        epoch_kld_train.append(np.mean(np.array(kld_d)))
     
         loss_d,bce_d,kld_d=test(model,dataloader_test,use_cuda,loss_function)
+        #loss_d,bce_d,kld_d=test(model,dataloader_train,use_cuda,loss_function)
         
-        if (np.mean(np.array(loss_d))[0])>best_result:
-            best_result=(np.mean(np.array(loss_d))[0])
+        if (np.mean(np.array(loss_d)))>best_result:
+            best_result=(np.mean(np.array(loss_d)))
             best_model=model.state_dict()
     
-        epoch_loss_test.append(list(np.mean(np.array(loss_d))))
-        epoch_bce_test.append(list(np.mean(np.array(bce_d))))
-        epoch_kld_test.append(list(np.mean(np.array(kld_d))))
+        epoch_loss_test.append(np.mean(np.array(loss_d)))
+        epoch_bce_test.append(np.mean(np.array(bce_d)))
+        epoch_kld_test.append(np.mean(np.array(kld_d)))
 
         tqdm.write("epoch {epoch:.2f}%".format(
                     epoch=epoch
@@ -147,6 +148,6 @@ def K_fold_train(model,
                     fold=fold
                     ))
 
-    np.save(os.path.join(data_train_dir,"loss_results"+'.npy',fold_loss))
-    np.save(os.path.join(data_train_dir,"bce_results"+'.npy',fold_bce))
-    np.save(os.path.join(data_train_dir,"kld_results"+'.npy',fold_kld))
+    np.save(os.path.join(data_train_dir,"loss_results"+'.npy'),fold_loss)
+    np.save(os.path.join(data_train_dir,"bce_results"+'.npy'),fold_bce)
+    np.save(os.path.join(data_train_dir,"kld_results"+'.npy'),fold_kld)

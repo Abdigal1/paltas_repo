@@ -1,6 +1,7 @@
 from .Utils_VAE import *
 from torch import nn
 import torch
+from .general_utils import conv_output_shape
 
 class b_encodeco(nn.Module):
     def __init__(self,
@@ -14,7 +15,7 @@ class b_encodeco(nn.Module):
         super(b_encodeco,self).__init__()
         
         self.layer_sizes=layer_sizes
-        self.NN_input=int(((image_dim/(2**(len(repr_sizes))))**2)*repr_sizes[-1])
+        self.NN_input=(self.compute_odim(image_dim,repr_sizes)[0]*self.compute_odim(image_dim,repr_sizes)[1])*repr_sizes[-1]
         self.latent_space_size=latent_space_size
         self.device=device
         
@@ -28,6 +29,12 @@ class b_encodeco(nn.Module):
         self.decoder_conv=b_decoder_conv(image_channels=image_channels,repr_sizes=repr_sizes)
         self.lact=nn.Sigmoid()
         
+    def compute_odim(self,idim,repr_sizes):
+        odim=idim
+        for i in repr_sizes:
+            odim=conv_output_shape(odim,kernel_size=3, stride=2, pad=1, dilation=1)
+        return odim
+
     def reparametrization(self,mu,logvar):
         std=logvar.mul(0.5).exp_()
         
