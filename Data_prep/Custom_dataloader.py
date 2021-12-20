@@ -5,6 +5,7 @@ import glob
 from skimage import io
 import matplotlib.pyplot as plt
 import PIL.Image
+import PIL.ExifTags
 
 class Dataset_direct(torch.utils.data.Dataset):
     def __init__(self,root_dir,ImType=['PhantomRGB', 'SenteraRGB', 'SenteraNIR'],
@@ -155,10 +156,12 @@ class Dataset_direct(torch.utils.data.Dataset):
                 #print(images_dir[i][0])
                 if self.retrieve_img:
                     sample[self.ImType[i]]=images[i]
-                    if (images[i].shape!=(1,1))and(images_dir[i][0].endswith(".jpg")):
+                    if (images_dir[i][0].endswith(".jpg"))or(images_dir[i][0].endswith(".JPG")):
                         sample[self.ImType[i]+"_metadata"]=self.get_metadata(images_dir[i][0])
                     else:
                         sample[self.ImType[i]+"_metadata"]=None
+                if (images_dir[i][0].endswith(".jpg"))or(images_dir[i][0].endswith(".JPG")):
+                    sample[self.ImType[i]+"_metadata"]=self.get_metadata(images_dir[i][0])
                 
             sample["Date"]=("_").join(idxID.split("_")[:3])
             sample["Place"]=("_").join(idxID.split("_")[3:])
