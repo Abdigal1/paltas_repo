@@ -67,7 +67,7 @@ class multi_ToTensor(object):
         #For Imtype
         for Type in self.ImType:
             # transform sample and save
-            sample[Type]=self.TT(sample[Type])
+            sample[Type]=(self.TT(sample[Type])).to(torch.float)
         return sample
 
 class output_transform(object):

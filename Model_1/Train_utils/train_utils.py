@@ -18,10 +18,11 @@ def train(model,optimizer,dataloader,use_cuda,loss_function):
         optimizer.step()
         
         tqdm.write(
-            "total loss {loss:.4f}\t BCE {bce:.4f}\t KLD {kld:.4f}".format(
+            "total loss {loss:.4f}\tBCE {bce:.4f}\tKLD {kld:.4f}\tbatch {shape:.4f}".format(
                 loss=loss.item(),
                 bce=bce.item(),
-                kld=kld.item()
+                kld=kld.item(),
+                shape=batch["PhantomRGB"].shape[0]
         )
         )
         
@@ -44,10 +45,11 @@ def test(model,dataloader,use_cuda,loss_function):
         loss,bce,kld=loss_function(r_img,batch["PhantomRGB"].to(device),mu,sig)
         
         tqdm.write(
-            "total loss {loss:.4f}\t BCE {bce:.4f}\t KLD {kld:.4f}".format(
+            "total loss {loss:.4f}\tBCE {bce:.4f}\tKLD {kld:.4f}\tbatch {shape:.4f}".format(
                 loss=loss.item(),
                 bce=bce.item(),
-                kld=kld.item()
+                kld=kld.item(),
+                shape=batch["PhantomRGB"].shape[0]
         )
         )
         
@@ -108,10 +110,18 @@ def K_fold_train(model,
     #Shuffle data
     train_s=int((len(dataset))*0.7)
     test_s=int(len(dataset)-train_s)
+    print("train len")
+    print(train_s)
+    print("test len")
+    print(test_s)    
     train_set, test_set = torch.utils.data.random_split(dataset, [train_s, test_s])
 
-    dataloader_train=torch.utils.data.DataLoader(train_set,batch_size=5,shuffle=True,num_workers=4)
-    dataloader_test=torch.utils.data.DataLoader(test_set,batch_size=5,shuffle=True,num_workers=4)
+    drop=False
+    if train_s%batch_size==1 or test_s%batch_size==1:
+        drop=True
+
+    dataloader_train=torch.utils.data.DataLoader(train_set,batch_size=batch_size,shuffle=True,num_workers=5,drop_last=True)
+    dataloader_test=torch.utils.data.DataLoader(test_set,batch_size=batch_size,shuffle=True,num_workers=5,drop_last=True)
 
     for fold in tqdm(range(folds),desc="folds"):
         ed=model

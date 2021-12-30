@@ -25,7 +25,6 @@ class set_conv(nn.Module):
         elif stride==2:
             self.padding=int((kernel_size-1)/2)
 
-        print(self.padding)
         self.comp_layer=nn.ModuleList(
             [nn.Conv2d(repr_size_in,repr_size_out,kernel_size=kernel_size,stride=self.stride,padding=self.padding)]+\
                 [nn.ReLU()]+\
@@ -35,7 +34,6 @@ class set_conv(nn.Module):
 
     def forward(self,x):
         for l in self.comp_layer:
-            print(x.shape)
             x=l(x)
         return x
 
@@ -50,8 +48,6 @@ class set_deconv(nn.Module):
             self.padding=int((kernel_size-1)/2)
             self.out_pad=1
 
-        print("padding")
-        print(self.padding)
         self.comp_layer=nn.ModuleList(
             [nn.ConvTranspose2d(repr_size_in,repr_size_out,kernel_size=kernel_size,stride=self.stride,padding=self.padding,output_padding=self.out_pad)]+\
             [nn.ReLU()]+\
@@ -60,7 +56,6 @@ class set_deconv(nn.Module):
         )
     def forward(self,x):
         for l in self.comp_layer:
-            print(x.shape)
             x=l(x)
         return x
 
