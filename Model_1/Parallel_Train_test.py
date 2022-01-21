@@ -35,7 +35,7 @@ def main():
     
 
     #os.path.join("..","Data_prep")
-    T_ID="VAE_2"
+    T_ID="VAE_3"
     pth=os.path.join(str(pathlib.Path().absolute()),"results",T_ID)
     print(pth)
 
@@ -58,7 +58,7 @@ def main():
         K_fold_train(model=model,
                 dataset=datab,
                 epochs=30,
-                batch_size=5,
+                batch_size=10,
                 use_cuda=True,
                 folds=2,
                 data_train_dir=pth,

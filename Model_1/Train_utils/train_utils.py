@@ -76,8 +76,8 @@ def train_test(model,optimizer,dataloader_train,dataloader_test,use_cuda,loss_fu
         if len(train_set)%batch_size==1 or len(test_set)%batch_size==1:
             drop=True
 
-        dataloader_train=torch.utils.data.DataLoader(train_set,batch_size=batch_size,shuffle=True,num_workers=0,drop_last=drop)
-        dataloader_test=torch.utils.data.DataLoader(test_set,batch_size=batch_size,shuffle=True,num_workers=0,drop_last=drop)
+        dataloader_train=torch.utils.data.DataLoader(train_set,batch_size=batch_size,shuffle=True,num_workers=8,drop_last=drop)
+        dataloader_test=torch.utils.data.DataLoader(test_set,batch_size=batch_size,shuffle=True,num_workers=8,drop_last=drop)
 
         loss_d,bce_d,kld_d=train(model,optimizer,dataloader_train,use_cuda,loss_function,in_device)
     
