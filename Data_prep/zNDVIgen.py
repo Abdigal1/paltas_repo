@@ -188,7 +188,7 @@ class texture_desc():
         
         return {('Sentera'+self.descriptor): greycoprops(glcm, self.descriptor), 'landmarks': sample['landmarks'], 'Date':sample['Date'], 'gf':gf, 'Place':sample['Place']}
  
-
+'''
 DB="\\\MYCLOUDPR4100\\Paltas_DataBase\\Data_Base_v2"
 
 d_t = transforms.Compose([texture_desc('correlation', from_rgb=False)])
@@ -243,10 +243,10 @@ out = []
 for i, item in tqdm(enumerate(datab)):
     with open('senteranirdissimilarity_v2.pkl', 'ab') as f:
         pickle.dump(item, f)
-
+'''
 DB="\\\MYCLOUDPR4100\\Paltas_DataBase\\Data_Base_v2"
 
-d_t = transforms.Compose([texture_desc('dontrast', from_rgb=False)])
+d_t = transforms.Compose([texture_desc('contrast', from_rgb=False)])
 datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB', 'SenteraMASK', 'SenteraNIR'],Intersec=False, transform=d_t)
 print('Data cargada')
 
