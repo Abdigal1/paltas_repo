@@ -40,7 +40,7 @@ def main():
 
     model=b_encodeco(image_dim=int(200),
                  image_channels=3,
-                 repr_sizes=[5,8,10],
+                 repr_sizes=[10,20,40],
                  layer_sizes=[100],
                  latent_space_size=20,
                  conv_kernel_size=15,
@@ -55,7 +55,7 @@ def main():
     K_fold_train(model=model,
                 dataset=datab,
                 epochs=30,
-                batch_size=21,
+                batch_size=2,
                 use_cuda=True,
                 folds=2,
                 data_train_dir=pth,

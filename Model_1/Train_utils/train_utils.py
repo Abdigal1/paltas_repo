@@ -59,7 +59,7 @@ def test(model,dataloader,use_cuda,loss_function):
         kld_d.append(kld.item())
     return loss_d,bce_d,kld_d
 
-def train_test(model,optimizer,dataloader_train,dataloader_test,use_cuda,loss_function,epochs,data_train_dir):
+def train_test(model,optimizer,train_set,test_set,use_cuda,loss_function,epochs,data_train_dir,batch_size):
     epoch_loss_train=[]
     epoch_bce_train=[]
     epoch_kld_train=[]
@@ -76,10 +76,10 @@ def train_test(model,optimizer,dataloader_train,dataloader_test,use_cuda,loss_fu
         if len(train_set)%batch_size==1 or len(test_set)%batch_size==1:
             drop=True
 
-        dataloader_train=torch.utils.data.DataLoader(train_set,batch_size=batch_size,shuffle=True,num_workers=0,drop_last=drop)
-        dataloader_test=torch.utils.data.DataLoader(test_set,batch_size=batch_size,shuffle=True,num_workers=0,drop_last=drop)
+        dataloader_train=torch.utils.data.DataLoader(train_set,batch_size=batch_size,shuffle=True,num_workers=6,drop_last=drop)
+        dataloader_test=torch.utils.data.DataLoader(test_set,batch_size=batch_size,shuffle=True,num_workers=6,drop_last=drop)
 
-        loss_d,bce_d,kld_d=train(model,optimizer,dataloader_train,use_cuda,loss_function,in_device)
+        loss_d,bce_d,kld_d=train(model,optimizer,dataloader_train,use_cuda,loss_function)
     
         epoch_loss_train.append(np.mean(np.array(loss_d)))
         epoch_bce_train.append(np.mean(np.array(bce_d)))
@@ -137,12 +137,13 @@ def K_fold_train(model,
         epoch_loss_train,epoch_bce_train,epoch_kld_train,epoch_loss_test,epoch_bce_test,epoch_kld_test,best_model=train_test(
             model=model,
             optimizer=optimizer,
-            dataloader_train=dataloader_train,
-            dataloader_test=dataloader_test,
+            train_set=train_set,
+            test_set=test_set,
             use_cuda=use_cuda,
             loss_function=loss_fn,
             epochs=epochs,
-            data_train_dir=data_train_dir
+            data_train_dir=data_train_dir,
+            batch_size=batch_size
         )
 
         fold_loss[fold]={"train":epoch_loss_train,
