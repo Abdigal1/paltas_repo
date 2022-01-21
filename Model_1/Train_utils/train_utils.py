@@ -71,7 +71,19 @@ def train_test(model,optimizer,dataloader_train,dataloader_test,use_cuda,loss_fu
     best_result=0
 
     for epoch in tqdm(range(epochs),desc="Epoch"):
+<<<<<<< HEAD
         loss_d,bce_d,kld_d=train(model,optimizer,dataloader_train,use_cuda,loss_function)
+=======
+
+        drop=False
+        if len(train_set)%batch_size==1 or len(test_set)%batch_size==1:
+            drop=True
+
+        dataloader_train=torch.utils.data.DataLoader(train_set,batch_size=batch_size,shuffle=True,num_workers=0,drop_last=drop)
+        dataloader_test=torch.utils.data.DataLoader(test_set,batch_size=batch_size,shuffle=True,num_workers=0,drop_last=drop)
+
+        loss_d,bce_d,kld_d=train(model,optimizer,dataloader_train,use_cuda,loss_function,in_device)
+>>>>>>> 19b2a52 (backup)
     
         epoch_loss_train.append(np.mean(np.array(loss_d)))
         epoch_bce_train.append(np.mean(np.array(bce_d)))
@@ -120,9 +132,12 @@ def K_fold_train(model,
     if train_s%batch_size==1 or test_s%batch_size==1:
         drop=True
 
+<<<<<<< HEAD
     dataloader_train=torch.utils.data.DataLoader(train_set,batch_size=batch_size,shuffle=True,num_workers=5,drop_last=True)
     dataloader_test=torch.utils.data.DataLoader(test_set,batch_size=batch_size,shuffle=True,num_workers=5,drop_last=True)
 
+=======
+>>>>>>> 19b2a52 (backup)
     for fold in tqdm(range(folds),desc="folds"):
         ed=model
         #optimizer
