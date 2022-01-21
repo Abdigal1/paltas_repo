@@ -2,4 +2,8 @@
 Labeled
 **.xlsx
 **.csv
+<<<<<<< HEAD
 **/__pycache__/**
+=======
+#**/__pycache__/**
+>>>>>>> 58fc990ba3ff2671b0a688a29987b6a042b5dbdb
