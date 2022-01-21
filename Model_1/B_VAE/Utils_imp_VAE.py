@@ -7,6 +7,11 @@ def loss_fn(r_x,x,mu,sig):
     KLD=-0.5*torch.mean(1+sig-mu.pow(2)-sig.exp())
     return BCE+KLD,BCE,KLD
 
+def loss_fn_b(r_x,x,mu,sig):
+    BCE=F.binary_cross_entropy(r_x,x,reduction='mean')
+    KLD=-0.5*torch.mean(1+sig-mu.pow(2)-sig.exp())
+    return BCE+KLD,BCE,KLD
+
 class s_view(nn.Module):
     def forward(self,x):
         if len(x.shape)==4:

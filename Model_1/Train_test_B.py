@@ -2,7 +2,7 @@ import pathlib
 import fire as fire
 from B_VAE.VAE_v2 import b_encodeco
 from Train_utils import train_utils
-from B_VAE.Utils_imp_VAE import loss_fn
+from B_VAE.Utils_imp_VAE import loss_fn_b
 from Train_utils.train_utils import train,test,K_fold_train
 
 import sys
@@ -24,7 +24,7 @@ def main():
     d_tt=transforms.Compose([
         phantom_segmentation(False),
         rgb_normalize(ImType=['PhantomRGB']),
-        multi_image_resize(ImType=['PhantomRGB'],size=(100,100)),
+        multi_image_resize(ImType=['PhantomRGB'],size=(200,200)),
         multi_ToTensor(ImType=['PhantomRGB']),
         output_transform()
         ])
@@ -34,11 +34,11 @@ def main():
     device='cuda'
 
     #os.path.join("..","Data_prep")
-    T_ID="VAE_v2_2"
+    T_ID="VAE_v2_3"
     pth=os.path.join(str(pathlib.Path().absolute()),"results",T_ID)
     print(pth)
 
-    model=b_encodeco(image_dim=int(100),
+    model=b_encodeco(image_dim=int(200),
                  image_channels=3,
                  repr_sizes=[5,8,10],
                  layer_sizes=[100],
@@ -59,7 +59,7 @@ def main():
                 use_cuda=True,
                 folds=2,
                 data_train_dir=pth,
-                loss_fn=loss_fn
+                loss_fn=loss_fn_b
      )
     
 if __name__ == "__main__":
