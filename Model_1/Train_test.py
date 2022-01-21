@@ -22,12 +22,8 @@ def main():
     #DB="//MYCLOUDPR4100/Paltas_DataBase/Data_Base_v2"
     d_tt=transforms.Compose([
         phantom_segmentation(False),
-<<<<<<< HEAD
         rgb_normalize(ImType=['PhantomRGB']),
-        multi_image_resize(ImType=['PhantomRGB'],size=(1000,1000)),
-=======
         multi_image_resize(ImType=['PhantomRGB'],size=(100,100)),
->>>>>>> 5a07757ba27d80fab01224eff1c9209a3422fa7f
         multi_ToTensor(ImType=['PhantomRGB']),
         output_transform()
         ])
@@ -43,8 +39,8 @@ def main():
 
     model=b_encodeco(image_dim=int(100),
                  image_channels=3,
-                 repr_sizes=[32,256],
-                 layer_sizes=[],
+                 repr_sizes=[15,30],
+                 layer_sizes=[50],
                  latent_space_size=5,
                 device=device)
     model.to(device)
@@ -52,10 +48,10 @@ def main():
 
     K_fold_train(model=model,
                 dataset=datab,
-                epochs=3,
-                batch_size=200,
+                epochs=20,
+                batch_size=10,
                 use_cuda=True,
-                folds=3,
+                folds=2,
                 data_train_dir=pth,
                 loss_fn=loss_fn
      )

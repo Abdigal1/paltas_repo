@@ -75,12 +75,8 @@ class b_encodeco(nn.Module):
             pool_l=self.conv_pooling
 
         odim=idim
-        print(repr_sizes+np.sum(np.array(pool_l).astype(int)))
         for i in range(len(repr_sizes)+np.sum(np.array(pool_l).astype(int))):
             odim=conv_output_shape(odim,kernel_size=self.conv_kernel_size, stride=1, pad=0, dilation=1)
-            print(odim)
-        print(repr_sizes+np.sum(np.array(pool_l).astype(int)))
-        print(odim)
         return odim
 
     def reparametrization(self,mu,logvar):
@@ -101,7 +97,6 @@ class b_encodeco(nn.Module):
         z=self.reparametrization(mu,sig)
         z=self.decoder_NN(z)
         z=self.flatten(z)
-        print(z.shape)
         z=self.decoder_conv(z)
         z=self.lact(z)
         
