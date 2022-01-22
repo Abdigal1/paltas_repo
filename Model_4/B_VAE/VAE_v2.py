@@ -39,17 +39,32 @@ class b_encodeco(nn.Module):
                                         stride=stride
                                         )
 
-        self.encoder_NN_mu=NeuralNet(self.NN_input,
+        #Q(z|x)
+        self.encoder_NN_Qz_x_mu=NeuralNet(self.NN_input,
                                         self.latent_space_size,
                                         layer_sizes=self.layer_sizes,
                                         batch_norm=self.NN_batch_norm
                                         )
 
-        self.encoder_NN_sig=NeuralNet(self.NN_input,
+        self.encoder_NN_Qz_x_sig=NeuralNet(self.NN_input,
                                         self.latent_space_size,
                                         layer_sizes=self.layer_sizes,
                                         batch_norm=self.NN_batch_norm
                                         )
+        #Q(w|x)
+        self.encoder_NN_Qw_x_mu=NeuralNet(self.NN_input,
+                                        self.latent_space_size,
+                                        layer_sizes=self.layer_sizes,
+                                        batch_norm=self.NN_batch_norm
+                                        )
+
+        self.encoder_NN_Qw_x_sig=NeuralNet(self.NN_input,
+                                        self.latent_space_size,
+                                        layer_sizes=self.layer_sizes,
+                                        batch_norm=self.NN_batch_norm
+                                        )
+        #P(y|w,z)
+
         
         self.flatten=s_view()
         
