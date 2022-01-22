@@ -64,23 +64,34 @@ class b_encodeco(nn.Module):
                                         batch_norm=self.NN_batch_norm
                                         )
         #P(y|w,z)
+        #Input w.shape + z.shape
+        #output sigmoid
+        # Add small constant to avoid tf.log(0)
+        #self.log_py_wz = tf.log(1e-10 + self.py_wz)
 
         
         self.flatten=s_view()
-        
-        self.decoder_NN=NeuralNet(self.latent_space_size,
-                                        self.NN_input,
-                                        layer_sizes=self.layer_sizes[::-1],
+
+        #P(z|w,y)
+        self.encoder_NN_Pz_wy_mu=NeuralNet(self.NN_input,
+                                        self.latent_space_size,
+                                        layer_sizes=self.layer_sizes,
                                         batch_norm=self.NN_batch_norm
                                         )
 
-        self.decoder_conv=b_decoder_conv(image_channels=image_channels,
-                                        repr_sizes=repr_sizes,
-                                        kernel_size=self.conv_kernel_size,
-                                        pooling=self.conv_pooling,
-                                        batch_norm=self.conv_batch_norm,
-                                        stride=stride
+        self.encoder_NN_Pz_wy_sig=NeuralNet(self.NN_input,
+                                        self.latent_space_size,
+                                        layer_sizes=self.layer_sizes,
+                                        batch_norm=self.NN_batch_norm
                                         )
+        #P(x|z)
+        self.encoder_NN_Px_z=NeuralNet(self.NN_input,
+                                        self.latent_space_size,
+                                        layer_sizes=self.layer_sizes,
+                                        batch_norm=self.NN_batch_norm
+                                        )
+        
+        
         self.lact=nn.Sigmoid()
         
     def compute_odim(self,idim,repr_sizes):

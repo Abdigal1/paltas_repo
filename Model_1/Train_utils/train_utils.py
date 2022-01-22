@@ -100,6 +100,7 @@ def train_test(model,optimizer,train_set,test_set,batch_size,use_cuda,loss_funct
 
     #Is file already exists charge ------------------------------------------------------------------------------------------------------------------------
     if "loss_results.npy" in os.listdir(data_train_dir):
+        print("result register found")
         epoch_bce_train=np.load(os.path.join(data_train_dir,'bce_results.npy'),allow_pickle=True).tolist()['train']
         epoch_bce_test=np.load(os.path.join(data_train_dir,'bce_results.npy'),allow_pickle=True).tolist()['valid']
 
@@ -202,6 +203,7 @@ def K_fold_train(model,
 
     #LOAD INDEXES IS ALREADY EXISTS ------------------------------------------------------------------------------------------------------------------------------------------------------------------
     if "data_split.pkl" in os.listdir(data_train_dir):
+        print("data split found")
         dict=load_dict(os.path.join(data_train_dir,"data_split.pkl"))
         train_index=dict["train_index"]
         test_index=dict["test_index"]
@@ -234,6 +236,7 @@ def K_fold_train(model,
 
         #LOAD OPTIMIZER, MODEL, CURRENT EPOCH AND NUMBER OF EPOCHS FROM CHECKPOINT ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         if "checkpoint.pt" in os.listdir(data_train_dir):
+            print("checkpoint found")
             checkpoint=torch.load(os.path.join(data_train_dir,"checkpoint.pt"))
             model.load_state_dict(checkpoint['model_state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
