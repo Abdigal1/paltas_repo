@@ -2,7 +2,7 @@ import pathlib
 import fire as fire
 from B_VAE.parallel_VAE import b_encodeco
 from Train_utils import train_utils
-from B_VAE.Utils_imp_VAE import loss_fn
+from B_VAE.Utils_imp_VAE import loss_fn_b
 from Train_utils.train_utils import train,test,K_fold_train
 
 import sys
@@ -62,7 +62,7 @@ def main():
                 use_cuda=True,
                 folds=2,
                 data_train_dir=pth,
-                loss_fn=loss_fn,
+                loss_fn=loss_fn_b,
                 in_device=device
         )
     except IndexError as e:
