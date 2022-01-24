@@ -19,7 +19,8 @@ from Transforms import rgb_normalize
 import torch
 
 def main():
-    DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,user=aorus_1,volume=Paltas_DataBase/Data_Base_v2"
+#    DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,user=aorus_1,volume=Paltas_DataBase/Data_Base_v2"
+    DB="/home/liiarpi-01/proyectopaltas/Local_data_base/Data_Base_v2"
     #DB="//MYCLOUDPR4100/Paltas_DataBase/Data_Base_v2"
     d_tt=transforms.Compose([
         phantom_segmentation(False),

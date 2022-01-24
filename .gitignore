@@ -3,3 +3,4 @@ Labeled
 **.xlsx
 **.csv
 **/__pycache__/**
+**/checkpoint.pt
