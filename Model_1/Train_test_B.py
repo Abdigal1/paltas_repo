@@ -2,7 +2,7 @@ import pathlib
 import fire as fire
 from B_VAE.VAE_v2 import b_encodeco
 from Train_utils import train_utils
-from B_VAE.Utils_imp_VAE import loss_fn_b
+from B_VAE.Utils_imp_VAE import MSEloss_fn_b
 from Train_utils.train_utils import train,test,K_fold_train
 
 import sys
@@ -60,7 +60,7 @@ def main():
                 use_cuda=True,
                 folds=2,
                 data_train_dir=pth,
-                loss_fn=loss_fn_b
+                loss_fn=MSEloss_fn_b
      )
     
 if __name__ == "__main__":

@@ -15,6 +15,7 @@ def loss_fn_b(r_x,x,mu,sig):
 def MSEloss_fn_b(r_x,x,mu,sig):
     BCE=F.mse_loss(r_x,x,reduction='mean')
     KLD=-0.5*torch.mean(1+sig-mu.pow(2)-sig.exp())
+    return BCE+KLD,BCE,KLD
 
 class s_view(nn.Module):
     def forward(self,x):
