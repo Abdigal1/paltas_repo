@@ -19,12 +19,13 @@ from Transforms import rgb_normalize
 import torch
 
 def main():
-    DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,user=paltas,volume=Paltas_DataBase/Data_Base_v2"
+    #DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,user=paltas,volume=Paltas_DataBase/Data_Base_v2"
+    DB="/home/lambda/paltas/Local_data_base/Data_Base_v2"
     #DB="//MYCLOUDPR4100/Paltas_DataBase/Data_Base_v2"
     d_tt=transforms.Compose([
         phantom_segmentation(False),
         rgb_normalize(ImType=['PhantomRGB']),
-        multi_image_resize(ImType=['PhantomRGB'],size=(500,500)),
+        multi_image_resize(ImType=['PhantomRGB'],size=(200,200)),
         multi_ToTensor(ImType=['PhantomRGB']),
         output_transform()
         ])
@@ -39,9 +40,9 @@ def main():
     pth=os.path.join(str(pathlib.Path().absolute()),"results",T_ID)
     print(pth)
 
-    model=b_encodeco(image_dim=int(500),
+    model=b_encodeco(image_dim=int(200),
                  image_channels=3,
-                 repr_sizes=[6,12,24,48,96,192],
+                 repr_sizes=[12,48,192],
                  layer_sizes=[100],
                  latent_space_size=30,
                  conv_kernel_size=35,
