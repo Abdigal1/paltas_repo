@@ -35,15 +35,15 @@ def main():
     device='cuda'
 
     #os.path.join("..","Data_prep")
-    T_ID="VAE_v2_3"
+    T_ID="VAE_v2_4"
     pth=os.path.join(str(pathlib.Path().absolute()),"results",T_ID)
     print(pth)
 
     model=b_encodeco(image_dim=int(200),
                  image_channels=3,
                  repr_sizes=[10,20,40],
-                 layer_sizes=[100],
-                 latent_space_size=20,
+                 layer_sizes=[],
+                 latent_space_size=50,
                  conv_kernel_size=15,
                  conv_pooling=False,
                  conv_batch_norm=True,
