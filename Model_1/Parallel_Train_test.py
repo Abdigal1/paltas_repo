@@ -35,14 +35,14 @@ def main():
     
 
     #os.path.join("..","Data_prep")
-    T_ID="VAE_3"
+    T_ID="VAE_4"
     pth=os.path.join(str(pathlib.Path().absolute()),"results",T_ID)
     print(pth)
 
     model=b_encodeco(image_dim=int(500),
                  image_channels=3,
-                 repr_sizes=[5,8,10,12],
-                 layer_sizes=[100,50],
+                 repr_sizes=[6,12,24,48,96,192],
+                 layer_sizes=[100],
                  latent_space_size=30,
                  conv_kernel_size=35,
                  conv_pooling=False,
