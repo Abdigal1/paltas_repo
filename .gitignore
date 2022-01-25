@@ -3,4 +3,6 @@ Labeled
 **.xlsx
 **.csv
 **/__pycache__/**
+Model_1/results/**/**.pt
 **/checkpoint.pt
+
