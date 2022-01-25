@@ -40,13 +40,14 @@ def load_df(file):
     return out
 
 
-PATHG = os.path.join(os.pardir, 'Data_prep')
-def load_meta_v2():
+PATHG = f'C:/Users/abdig/Desktop/RGBGLCM'
+#PATHG = os.path.join(os.pardir, 'Data_prep')
+def load_meta_v2(path=PATHG):
     apkl = []
-    for i in os.listdir(PATHG):
+    for i in os.listdir(path):
         
         if i.endswith('2.pkl'):
-            apkl.append(load_df(os.path.join(PATHG,i)))
+            apkl.append(load_df(os.path.join(path,i)))
         
     sa = []
     fly = []
