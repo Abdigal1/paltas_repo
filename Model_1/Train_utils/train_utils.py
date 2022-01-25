@@ -237,11 +237,16 @@ def K_fold_train(model,
         #LOAD OPTIMIZER, MODEL, CURRENT EPOCH AND NUMBER OF EPOCHS FROM CHECKPOINT ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         if "checkpoint.pt" in os.listdir(data_train_dir):
             print("checkpoint found")
-            checkpoint=torch.load(os.path.join(data_train_dir,"checkpoint.pt"))
-            model.load_state_dict(checkpoint['model_state_dict'])
-            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
             checkpoint_epoch=checkpoint["current_epoch"]
             epochs=checkpoint["total_epoch"]
+            if epochs-1!=checkpoint_epoch:
+                checkpoint=torch.load(os.path.join(data_train_dir,"checkpoint.pt"))
+                model.load_state_dict(checkpoint['model_state_dict'])
+                optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            else:
+                print("was the last")
+
         else:
             checkpoint_epoch=0
 
