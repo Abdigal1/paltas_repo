@@ -3,6 +3,7 @@ import fire as fire
 from B_VAE.parallel_VAE import b_encodeco
 from Train_utils import train_utils
 from B_VAE.Utils_imp_VAE import loss_fn_b
+from B_VAE.Utils_imp_VAE import MSEloss_fn_b
 from Train_utils.train_utils import train,test,K_fold_train
 
 import sys
@@ -36,16 +37,16 @@ def main():
     
 
     #os.path.join("..","Data_prep")
-    T_ID="VAE_4"
+    T_ID="VAE_5"
     pth=os.path.join(str(pathlib.Path().absolute()),"results",T_ID)
     print(pth)
 
     model=b_encodeco(image_dim=int(200),
                  image_channels=3,
                  repr_sizes=[12,48,192],
-                 layer_sizes=[100],
-                 latent_space_size=30,
-                 conv_kernel_size=35,
+                 layer_sizes=[80,50],
+                 latent_space_size=50,
+                 conv_kernel_size=25,
                  conv_pooling=False,
                  conv_batch_norm=True,
                  NN_batch_norm=True,
@@ -59,11 +60,11 @@ def main():
         K_fold_train(model=model,
                 dataset=datab,
                 epochs=30,
-                batch_size=10,
+                batch_size=2,
                 use_cuda=True,
                 folds=2,
                 data_train_dir=pth,
-                loss_fn=loss_fn_b,
+                loss_fn=MSEloss_fn_b,
                 in_device=device
         )
     except IndexError as e:
