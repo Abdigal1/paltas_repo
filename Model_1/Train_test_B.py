@@ -17,6 +17,7 @@ from Transforms import output_transform
 from Transforms import rgb_normalize
 
 import torch
+from torch import nn
 
 def main():
 #    DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,user=aorus_1,volume=Paltas_DataBase/Data_Base_v2"
@@ -35,7 +36,7 @@ def main():
     device='cuda'
 
     #os.path.join("..","Data_prep")
-    T_ID="VAE_v2_4"
+    T_ID="VAE_v2_5"
     pth=os.path.join(str(pathlib.Path().absolute()),"results",T_ID)
     print(pth)
 
@@ -45,6 +46,7 @@ def main():
                  layer_sizes=[],
                  latent_space_size=50,
                  conv_kernel_size=15,
+                 activators=[nn.Tanh(),nn.ReLU(),nn.ReLU()],
                  conv_pooling=False,
                  conv_batch_norm=True,
                  NN_batch_norm=True,
@@ -60,6 +62,7 @@ def main():
                 use_cuda=True,
                 folds=2,
                 data_train_dir=pth,
+                n_workers=6,
                 loss_fn=MSEloss_fn_b
      )
     

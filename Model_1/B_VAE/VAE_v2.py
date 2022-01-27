@@ -70,7 +70,7 @@ class b_encodeco(nn.Module):
                                         batch_norm=self.conv_batch_norm,
                                         stride=stride
                                         )
-        self.lact=nn.Sigmoid()
+        #self.lact=nn.Sigmoid()
         
     def compute_odim(self,idim,repr_sizes):
         if isinstance(self.conv_pooling,bool):
@@ -102,6 +102,6 @@ class b_encodeco(nn.Module):
         z=self.decoder_NN(z)
         z=self.flatten(z)
         z=self.decoder_conv(z)
-        z=self.lact(z)
+        #z=self.lact(z)
         
         return z,mu,sig

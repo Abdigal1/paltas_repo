@@ -71,10 +71,10 @@ class set_deconv(nn.Module):
 
 class b_encoder_conv(nn.Module):
     def __init__(self,image_channels=3,repr_sizes=[32,64,128,256],
-                kernel_size=5,activators=nn.Relu(),pooling=True,batch_norm=True,stride=1):
+                kernel_size=5,activators=nn.ReLU(),pooling=True,batch_norm=True,stride=1):
         super(b_encoder_conv, self).__init__()
         self.repr_sizes=[image_channels]+repr_sizes
-        self.activators=activators
+        #self.activators=activators
         #kernels
         if isinstance(kernel_size,int):
             self.kernels=[kernel_size for i in range(len(repr_sizes))]
@@ -121,11 +121,11 @@ class b_encoder_conv(nn.Module):
     
 class b_decoder_conv(nn.Module):
     def __init__(self,image_channels=3,repr_sizes=[32,64,128,256],
-                kernel_size=5,activators=nn.Relu(),pooling=True,batch_norm=True,stride=1):
+                kernel_size=5,activators=nn.ReLU(),pooling=True,batch_norm=True,stride=1):
         super(b_decoder_conv,self).__init__()
         self.repr_sizes=[image_channels]+repr_sizes
         self.repr_sizes=self.repr_sizes[::-1]
-        self.activators=activators[::-1]
+        
         #kernels
         if isinstance(kernel_size,int):
             self.kernels=[kernel_size for i in range(len(repr_sizes))]
@@ -136,7 +136,7 @@ class b_decoder_conv(nn.Module):
             self.activators=[activators for i in range(len(repr_sizes))]
         else:
             self.activators=activators
-
+        self.activators=activators[::-1]
         #pooling
         if isinstance(pooling,bool):
             self.pooling=[pooling for i in range(len(repr_sizes))]
@@ -159,8 +159,8 @@ class b_decoder_conv(nn.Module):
                 for repr_in,repr_out,kernel_size,act,pooling,batch_norm in zip(
                     self.repr_sizes[:-1],
                     self.repr_sizes[1:],
-                    self.activators,
                     self.kernels,
+                    self.activators,
                     self.pooling,
                     self.batch_norm
                 )
@@ -190,7 +190,7 @@ class NeuralNet(nn.Module):
                 activators=nn.ReLU(),batch_norm=True):
         super(NeuralNet,self).__init__()
         self.layer_sizes=[input_size]+layer_sizes+[output_size]
-        self.activators=activators
+        #self.activators=activators
 
         #batch_norm
         if isinstance(batch_norm,bool):
