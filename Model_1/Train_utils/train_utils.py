@@ -85,7 +85,7 @@ def test(model,dataloader,use_cuda,loss_function,in_device=None):
         kld_d.append(kld.item())
     return loss_d,bce_d,kld_d
 
-def train_test(model,optimizer,train_set,test_set,batch_size,use_cuda,loss_function,epochs,data_train_dir,in_device=None,checkpoint_epoch=0):
+def train_test(model,optimizer,train_set,test_set,batch_size,use_cuda,loss_function,epochs,data_train_dir,in_device=None,n_workers=0,checkpoint_epoch=0):
     epoch_loss={}
     epoch_bce={}
     epoch_kld={}
@@ -123,8 +123,10 @@ def train_test(model,optimizer,train_set,test_set,batch_size,use_cuda,loss_funct
         if len(test_set)%batch_size==1:
             drop_test=True
 
-        dataloader_train=torch.utils.data.DataLoader(train_set,batch_size=batch_size,shuffle=True,num_workers=12,drop_last=drop_train,persistent_workers=True)
-        dataloader_test=torch.utils.data.DataLoader(test_set,batch_size=batch_size,shuffle=True,num_workers=12,drop_last=drop_test,persistent_workers=True)
+        dataloader_train=torch.utils.data.DataLoader(train_set,batch_size=batch_size,shuffle=True,
+                                                    num_workers=n_workers,drop_last=drop_train,persistent_workers=True)
+        dataloader_test=torch.utils.data.DataLoader(test_set,batch_size=batch_size,shuffle=True,
+                                                    num_workers=n_workers,drop_last=drop_test,persistent_workers=True)
 
         loss_tr,bce_tr,kld_tr=train(model,optimizer,dataloader_train,use_cuda,loss_function,in_device)
     
@@ -187,6 +189,7 @@ def K_fold_train(model,
                 folds,
                 data_train_dir,
                 loss_fn,
+                n_workers,
                 in_device=None
                 ):
     fold_loss={}
@@ -218,14 +221,6 @@ def K_fold_train(model,
     #train_set, test_set = torch.utils.data.random_split(dataset, [train_s, test_s])
     train_set = torch.utils.data.Subset(dataset, train_index)
     test_set = torch.utils.data.Subset(dataset, test_index)
-
-    drop_train=False
-    drop_test=False
-    if train_s%batch_size==1:
-        drop_train=True
-    
-    if test_s%batch_size==1:
-        drop_test=True
 
     for fold in tqdm(range(folds),desc="folds"):
         #train_set, test_set = torch.utils.data.random_split(dataset, [train_s, test_s])
@@ -263,6 +258,7 @@ def K_fold_train(model,
             epochs=epochs,
             data_train_dir=data_train_dir,
             in_device=in_device,
+            n_workers=n_workers,
             checkpoint_epoch=checkpoint_epoch
         )
 
