@@ -21,30 +21,31 @@ from Transforms import rgb_normalize
 
 
 def main():
-    res_dir=os.path.join("..",'VAE_v2_2')
-    model_state=torch.load(os.path.join(res_dir,'best1.pt'))
+    res_dir=os.path.join("..",'VAE_v2_4')
+    model_state=torch.load(os.path.join(res_dir,'best0.pt'))
 
-    model=b_encodeco(image_dim=int(100),
+    model=b_encodeco(image_dim=int(200),
                  image_channels=3,
-                 repr_sizes=[5,8,10],
-                 layer_sizes=[100],
-                 latent_space_size=20,
+                 repr_sizes=[10,20,40],
+                 layer_sizes=[],
+                 latent_space_size=50,
                  conv_kernel_size=15,
                  conv_pooling=False,
                  conv_batch_norm=True,
                  NN_batch_norm=True,
                  stride=2,
-                device='cuda')
+                device='cpu')
 
     model.load_state_dict(model_state)
 
-    DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,user=aorus_1,volume=Paltas_DataBase/Data_Base_v2"
-    meta_dir="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,user=aorus_1,volume=Paltas_DataBase/metadata_VAE_v2"
+    #DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,user=aorus_1,volume=Paltas_DataBase/Data_Base_v2"
+    DB="/home/liiarpi-01/proyectopaltas/Local_data_base/Data_Base_v2"
+    meta_dir="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,user=aorus_1,volume=Paltas_DataBase/metadata_VAE_v4"
 
     d_tt=transforms.Compose([
         phantom_segmentation_(False),
         rgb_normalize(ImType=['PhantomRGB']),
-        multi_image_resize(ImType=['PhantomRGB'],size=(100,100)),
+        multi_image_resize(ImType=['PhantomRGB'],size=(200,200)),
         multi_ToTensor(ImType=['PhantomRGB']),
         ])
 
