@@ -128,13 +128,36 @@ class b_encodeco(nn.Module):
         return BCE
 
     def conditional_prior(self,x):
+        #inferences
+        #TODO: self.particles
         z_x,z_x_mean,z_x_logvar=self.Q.z_infer(x)
-        z_x_var=z_x_logvar.mul(0.5).exp_()
+        w_x,w_x_mean,w_x_logvar=self.Q.w_infer(x)
+        y_wz=self.Q.y_gener(w_x,z_x) #[batch,K]
+        #generation
+        z_wy,z_wy_mean,z_wy_logvar=self.P.z_gener(w_x) #[batch,K,z_dim]
+
+        z_x_var=z_x_logvar.mul(0.5).exp_() #[batch,z_dim]
         logq=-0.5*torch.sum(z_x_logvar)-0.5*torch.sum((z_x-z_x_mean)**2/z_x_var)
+        
+        
+        z_wy_var=z_wy_logvar.mul(0.5).exp_()
+        log_det_sig=torch.sum(z_wy_logvar,dim=2) #[batch,K]
+        MSE=torch.sum((z_wy-z_wy_mean)**2/(z_wy_var**2),dim=2) #[batch,K]
+        logp=-0.5*log_det_sig-0.5*MSE #[batch,K]
+        yplogp=torch.sum(logp.mul(y_wz)) #[batch,K]
+        cond_prior=logq-yplogp
+        #TODO: check reduction
+        return cond_prior
 
-    #def w_prior(self,):
+    def w_prior(self,x):
+        w_x,w_x_mean,w_x_logvar=self.Q.w_infer(x)
+        w_x_var=w_x_logvar.mul(0.5).exp_() #[batch,z_dim]
+        KL_w=0.5*torch.sum(w_x_var+w_x_mean**2-1-w_x_logvar)
+        #TODO: check reduction
+        return KL_w
 
-    #def y_prior(self,):
+    def y_prior(self,x):
+        y_prior=-torch.log(self.y_latent_space_size)
 
     #def L2_loss(self,):
 

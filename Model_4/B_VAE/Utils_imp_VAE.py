@@ -254,7 +254,7 @@ class Q_NET(nn.Module):
         self.py_wz_sig=NeuralNet(self.w_latent_space_size+self.z_latent_space_size,
                                         self.y_latent_space_size,
                                         layer_sizes=self.layer_sizes,
-                                        activators=[nn.ReLU for i in len(self.layer_sizes)]+[nn.Sigmoid()],
+                                        activators=[nn.ReLU for i in len(self.layer_sizes)]+[nn.Softmax()],
                                         batch_norm=self.NN_batch_norm
                                         )
     
@@ -270,9 +270,9 @@ class Q_NET(nn.Module):
         w=self.reparametrization(w_mean,w_logsig,n_particle)
         return w,w_mean,w_logsig
 
-    def y_gener(self,x,n_particle=1):
-        z,z_mean,z_logsig=self.z_infer(x,n_particle)
-        w,w_mean,w_logsig=self.w_infer(x,n_particle)
+    def y_gener(self,w,z,n_particle=1):
+        #z,z_mean,z_logsig=self.z_infer(x,n_particle)
+        #w,w_mean,w_logsig=self.w_infer(x,n_particle)
         c_prob=self.py_wz(torch.cat((w,z),dim=1))
         return c_prob
 
