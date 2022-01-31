@@ -1,4 +1,3 @@
-from turtle import forward
 from torch import nn
 import torch.nn.functional as F
 import torch
@@ -8,8 +7,15 @@ def loss_fn(r_x,x,mu,sig):
     KLD=-0.5*torch.mean(1+sig-mu.pow(2)-sig.exp())
     return BCE+KLD,BCE,KLD
 
-#GMVAE LOSS
+def loss_fn_b(r_x,x,mu,sig):
+    BCE=F.binary_cross_entropy(r_x,x,reduction='mean')
+    KLD=-0.5*torch.mean(1+sig-mu.pow(2)-sig.exp())
+    return BCE+KLD,BCE,KLD
 
+def MSEloss_fn_b(r_x,x,mu,sig):
+    BCE=F.mse_loss(r_x,x,reduction='mean')
+    KLD=-0.5*torch.mean(1+sig-mu.pow(2)-sig.exp())
+    return BCE+KLD,BCE,KLD
 
 class s_view(nn.Module):
     def forward(self,x):
@@ -65,10 +71,10 @@ class set_deconv(nn.Module):
 
 class b_encoder_conv(nn.Module):
     def __init__(self,image_channels=3,repr_sizes=[32,64,128,256],
-                kernel_size=5,activators=nn.Relu(),pooling=True,batch_norm=True,stride=1):
+                kernel_size=5,activators=nn.ReLU(),pooling=True,batch_norm=True,stride=1):
         super(b_encoder_conv, self).__init__()
         self.repr_sizes=[image_channels]+repr_sizes
-        self.activators=activators
+        #self.activators=activators
         #kernels
         if isinstance(kernel_size,int):
             self.kernels=[kernel_size for i in range(len(repr_sizes))]
@@ -115,11 +121,11 @@ class b_encoder_conv(nn.Module):
     
 class b_decoder_conv(nn.Module):
     def __init__(self,image_channels=3,repr_sizes=[32,64,128,256],
-                kernel_size=5,activators=nn.Relu(),pooling=True,batch_norm=True,stride=1):
+                kernel_size=5,activators=nn.ReLU(),pooling=True,batch_norm=True,stride=1):
         super(b_decoder_conv,self).__init__()
         self.repr_sizes=[image_channels]+repr_sizes
         self.repr_sizes=self.repr_sizes[::-1]
-        self.activators=activators[::-1]
+        
         #kernels
         if isinstance(kernel_size,int):
             self.kernels=[kernel_size for i in range(len(repr_sizes))]
@@ -130,7 +136,7 @@ class b_decoder_conv(nn.Module):
             self.activators=[activators for i in range(len(repr_sizes))]
         else:
             self.activators=activators
-
+        self.activators=activators[::-1]
         #pooling
         if isinstance(pooling,bool):
             self.pooling=[pooling for i in range(len(repr_sizes))]
@@ -153,8 +159,8 @@ class b_decoder_conv(nn.Module):
                 for repr_in,repr_out,kernel_size,act,pooling,batch_norm in zip(
                     self.repr_sizes[:-1],
                     self.repr_sizes[1:],
-                    self.activators,
                     self.kernels,
+                    self.activators,
                     self.pooling,
                     self.batch_norm
                 )
@@ -184,7 +190,7 @@ class NeuralNet(nn.Module):
                 activators=nn.ReLU(),batch_norm=True):
         super(NeuralNet,self).__init__()
         self.layer_sizes=[input_size]+layer_sizes+[output_size]
-        self.activators=activators
+        #self.activators=activators
 
         #batch_norm
         if isinstance(batch_norm,bool):
@@ -214,13 +220,14 @@ class NeuralNet(nn.Module):
         return x
 
 class Q_NET(nn.Module):
-    def __init__(self,input,w_latent_space_size,z_latent_space_size,y_latent_space_size,layer_sizes):
+    def __init__(self,input,w_latent_space_size,z_latent_space_size,y_latent_space_size,layer_sizes,NN_batch_norm=True):
         super(Q_NET,self).__init__()
         self.NN_input=input
         self.w_latent_space_size=w_latent_space_size
         self.z_latent_space_size=z_latent_space_size
         self.y_latent_space_size=y_latent_space_size
         self.layer_sizes=layer_sizes
+        self.NN_batch_norm=NN_batch_norm
 
         #Q(z|x)
         self.qz_x_mu=NeuralNet(self.NN_input,
@@ -251,10 +258,10 @@ class Q_NET(nn.Module):
         #output sigmoid
         # Add small constant to avoid tf.log(0)
         #self.log_py_wz = tf.log(1e-10 + self.py_wz)
-        self.py_wz_sig=NeuralNet(self.w_latent_space_size+self.z_latent_space_size,
+        self.py_wz=NeuralNet(self.w_latent_space_size+self.z_latent_space_size,
                                         self.y_latent_space_size,
                                         layer_sizes=self.layer_sizes,
-                                        activators=[nn.ReLU for i in len(self.layer_sizes)]+[nn.Softmax()],
+                                        activators=[nn.ReLU() for i in range(len(self.layer_sizes))]+[nn.Softmax(dim=1)],
                                         batch_norm=self.NN_batch_norm
                                         )
     
@@ -273,38 +280,40 @@ class Q_NET(nn.Module):
     def y_gener(self,w,z,n_particle=1):
         #z,z_mean,z_logsig=self.z_infer(x,n_particle)
         #w,w_mean,w_logsig=self.w_infer(x,n_particle)
-        c_prob=self.py_wz(torch.cat((w,z),dim=1))
-        return c_prob
+        py=self.py_wz(torch.cat((w,z),dim=1))
+        return py
 
     def reparametrization(self,mean,logsig,n_particle=1):
         #eps=torch.randn_like(mean.expand(n_particle,-1,-1)).to(self.device)
-        eps=torch.randn_like(mean.expand(n_particle,-1,-1))
+        #eps=torch.randn_like(mean.expand(n_particle,-1,-1))
+        eps=torch.randn_like(mean)
         std=logsig.mul(0.5).exp_()
         sample=mean+eps*std
         return sample
     #def forward(): ------------------------------------------------------------------------------------------------
 
 class P_NET(nn.Module):
-    def __init__(self,input,w_latent_space_size,z_latent_space_size,y_latent_space_size,layer_sizes):
+    def __init__(self,input,w_latent_space_size,z_latent_space_size,y_latent_space_size,layer_sizes,NN_batch_norm=True):
         super(P_NET,self).__init__()
         self.NN_input=input
         self.w_latent_space_size=w_latent_space_size
         self.z_latent_space_size=z_latent_space_size
         self.y_latent_space_size=y_latent_space_size
         self.layer_sizes=layer_sizes
+        self.NN_batch_norm=NN_batch_norm
 
         #P(z|w,y)
         self.pz_wy_mu=nn.ModuleList([NeuralNet(self.w_latent_space_size,#W
-                                        self.latent_space_size,
+                                        self.z_latent_space_size,
                                         layer_sizes=self.layer_sizes[::-1],
                                         batch_norm=self.NN_batch_norm
-                                        ) for i in range(self.K)])
+                                        ) for i in range(self.y_latent_space_size)])
 
         self.pz_wy_sig=nn.ModuleList([NeuralNet(self.w_latent_space_size,#W
                                         self.z_latent_space_size,
                                         layer_sizes=self.layer_sizes[::-1],
                                         batch_norm=self.NN_batch_norm
-                                        ) for i in range(self.K)])
+                                        ) for i in range(self.y_latent_space_size)])
         #P(x|z)
         self.px_z=NeuralNet(self.z_latent_space_size,#Z
                                         self.NN_input,
@@ -312,8 +321,8 @@ class P_NET(nn.Module):
                                         batch_norm=self.NN_batch_norm
                                         )
     def z_gener(self,w,n_particle=1):
-        z_mean=self.pz_wy_mu(w)
-        z_logsig=self.pz_wy_mu(w)
+        z_mean=torch.concat([self.pz_wy_mu[i](w).unsqueeze(1) for i in range(self.y_latent_space_size)],dim=1)
+        z_logsig=torch.concat([self.pz_wy_sig[i](w).unsqueeze(1) for i in range(self.y_latent_space_size)],dim=1)
         z=self.reparametrization(z_mean,z_logsig,n_particle)
         return z,z_mean,z_logsig
 
@@ -323,7 +332,8 @@ class P_NET(nn.Module):
 
     def reparametrization(self,mean,logsig,n_particle=1):
         #eps=torch.randn_like(mean.expand(n_particle,-1,-1)).to(self.device)
-        eps=torch.randn_like(mean.expand(n_particle,-1,-1))
+        #eps=torch.randn_like(mean.expand(n_particle,-1,-1))
+        eps=torch.randn_like(mean)
         std=logsig.mul(0.5).exp_()
         sample=mean+eps*std
         return sample
