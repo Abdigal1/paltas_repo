@@ -3,5 +3,7 @@ Labeled
 **.xlsx
 **.csv
 **/__pycache__/**
-Model_1/results/**/**.pt
+**/Model_1/results/**/**.pt
+/**.pt
 **/checkpoint.pt
+Model_1/results/VAE_v2_5/best0.pt
