@@ -147,8 +147,8 @@ class GMVAE(nn.Module):
         MSE=torch.mean((z_wy-z_wy_mean)**2/(z_wy_var**2),dim=2) #[batch,K]
         logp=-0.5*log_det_sig-0.5*MSE #[batch,K]
         yplogp=torch.mean(logp.mul(y_wz)) #[batch,K]
-        cond_prior=logq-yplogp
-        #TODO: check reduction
+        #cond_prior=logq-yplogp
+        cond_prior=torch.abs(logq-yplogp)
         return cond_prior
 
     def w_prior(self,w_x_mean,w_x_logvar):
