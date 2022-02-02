@@ -4,7 +4,8 @@ Labeled
 **.csv
 **/__pycache__/**
 **/Model_1/results/**/**.pt
+**/Model_4/results/**/**.pt
 /**.pt
 **/checkpoint.pt
-Model_1/results/VAE_v2_5/best0.pt
+**/best0.pt
 **.pyc
