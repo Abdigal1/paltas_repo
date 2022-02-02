@@ -20,7 +20,8 @@ class b_encodeco(nn.Module):
                  device="cpu"
                 ):
         super(b_encodeco,self).__init__()
-        
+
+        self.losses={}
 
         self.conv_pooling=conv_pooling
         self.conv_batch_norm=conv_batch_norm
@@ -45,12 +46,14 @@ class b_encodeco(nn.Module):
         self.encoder_NN_mu=NeuralNet(self.NN_input,
                                         self.latent_space_size,
                                         layer_sizes=self.layer_sizes,
+                                        activators=[nn.LeakyReLU() for i in range(len(self.layer_sizes))]+[nn.Identity()],#RELU + identity
                                         batch_norm=self.NN_batch_norm
                                         )
 
         self.encoder_NN_sig=NeuralNet(self.NN_input,
                                         self.latent_space_size,
                                         layer_sizes=self.layer_sizes,
+                                        activators=[nn.LeakyReLU() for i in range(len(self.layer_sizes))]+[nn.Identity()],#RELU + identity
                                         batch_norm=self.NN_batch_norm
                                         )
         
@@ -105,3 +108,27 @@ class b_encodeco(nn.Module):
         #z=self.lact(z)
         
         return z,mu,sig
+
+    def reconstruction_loss(self,r_x,x):
+        BCE=F.mse_loss(r_x,x,reduction='mean')
+        return BCE
+    
+    def KLD_loss(self,z_mean,z_logvar):
+        KLD=-0.5*torch.mean(1+z_logvar-z_mean.pow(2)-z_logvar.exp())
+        return KLD
+    def ELBO(self,x):
+        x_r,z_mean,z_logvar=self.forward(x)
+
+        reconstruction=self.reconstruction_loss(x_r,x)
+        KLD=self.KLD_loss(z_mean,z_logvar)
+
+        loss=reconstruction\
+            +KLD
+
+        #BUILD LOSSES DICT
+        self.losses['KLD']=KLD
+        self.losses['reconstruction']=reconstruction
+        self.losses["total_loss"]=loss
+        
+        return self.losses
+

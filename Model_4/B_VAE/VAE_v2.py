@@ -23,7 +23,8 @@ class GMVAE(nn.Module):
                  device="cpu"
                 ):
         super(GMVAE,self).__init__()
-        
+
+        self.losses={}
 
         self.conv_pooling=conv_pooling
         self.conv_batch_norm=conv_batch_norm
@@ -135,16 +136,10 @@ class GMVAE(nn.Module):
         return BCE
 
     def conditional_prior(self,z_x,z_x_mean,z_x_logvar,y_wz,z_wy,z_wy_mean,z_wy_logvar):
-        #inferences
         #TODO: self.particles
-        #z_x,z_x_mean,z_x_logvar=self.Q.z_infer(x)
-        #w_x,w_x_mean,w_x_logvar=self.Q.w_infer(x)
-        #y_wz=self.Q.y_gener(w_x,z_x) #[batch,K]
-        #generation
-        #z_wy,z_wy_mean,z_wy_logvar=self.P.z_gener(w_x) #[batch,K,z_dim]
 
         z_x_var=z_x_logvar.mul(0.5).exp_() #[batch,z_dim]
-        logq=-0.5*torch.mean(z_x_logvar)-0.5*torch.mean((z_x-z_x_mean)**2/z_x_var)
+        logq=-0.5*torch.mean(z_x_logvar)-0.5*torch.mean((z_x-z_x_mean)**2/(z_x_var**2))
         
         
         z_wy_var=z_wy_logvar.mul(0.5).exp_() #[batch,K,z_dim]
@@ -157,19 +152,12 @@ class GMVAE(nn.Module):
         return cond_prior
 
     def w_prior(self,w_x_mean,w_x_logvar):
-        #inferences
-        #w_x,w_x_mean,w_x_logvar=self.Q.w_infer(x)
-
         w_x_var=w_x_logvar.mul(0.5).exp_() #[batch,z_dim]
-        KL_w=0.5*torch.mean(w_x_var+w_x_mean**2-1-w_x_logvar)
-        #TODO: check reduction
+        KL_w=0.5*torch.mean(w_x_var**2+w_x_mean**2-1-w_x_logvar)
         return KL_w
 
     def y_prior(self,py):
-        #inferences
-        #py=self.Q.y_gener(w,z)
-
-        y_prior=torch.mean(torch.sum(-py*(np.log(self.y_latent_space_size,dtype="float32")+torch.log(py))))
+        y_prior=torch.mean(torch.sum(py * ( np.log(self.y_latent_space_size,dtype="float32") + torch.log(py) )))
         return y_prior
 
     def ELBO(self,x_i):
@@ -189,9 +177,19 @@ class GMVAE(nn.Module):
         x_mean=self.flatten(x_mean)
         x_mean=self.decoder_conv(x_mean)
 
-        #TODO: check signos
-        loss=self.reconstruction_loss(x_mean,x_i)\
-            -self.conditional_prior(z_x,z_x_mean,z_x_logvar,py_wz,z_wy,z_wy_mean,z_wy_logvar)\
-            -self.w_prior(w_x_mean,w_x_logvar)\
-            -self.y_prior(py_wz)
-        return loss
+        reconstruction=self.reconstruction_loss(x_mean,x_i)
+        conditional_prior=self.conditional_prior(z_x,z_x_mean,z_x_logvar,py_wz,z_wy,z_wy_mean,z_wy_logvar)
+        w_prior=self.w_prior(w_x_mean,w_x_logvar)
+        y_prior=self.y_prior(py_wz)
+        loss=reconstruction\
+            +conditional_prior\
+            +w_prior\
+            +y_prior
+        #BUILD LOSSES DICT
+        self.losses['conditional_prior']=conditional_prior
+        self.losses['w_prior']=w_prior
+        self.losses['y_prior']=y_prior
+        self.losses['reconstruction']=reconstruction
+        self.losses["total_loss"]=loss
+        
+        return self.losses

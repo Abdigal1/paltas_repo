@@ -2,6 +2,7 @@ import pathlib
 import fire as fire
 from B_VAE.VAE_v2 import b_encodeco
 from Train_utils import train_utils
+from Train_utils.TT_class import trainer
 from B_VAE.Utils_imp_VAE import MSEloss_fn_b
 from Train_utils.train_utils import train,test,K_fold_train
 
@@ -55,16 +56,31 @@ def main():
     model.to(device)
     print("model loaded")
 
-    K_fold_train(model=model,
-                dataset=datab,
-                epochs=30,
-                batch_size=2,
-                use_cuda=True,
-                folds=2,
-                data_train_dir=pth,
-                n_workers=6,
-                loss_fn=MSEloss_fn_b
-     )
+    #K_fold_train(model=model,
+    #            dataset=datab,
+    #            epochs=30,
+    #            batch_size=2,
+    #            use_cuda=True,
+    #            folds=2,
+    #            data_train_dir=pth,
+    #            n_workers=6,
+    #            loss_fn=MSEloss_fn_b
+    # )
+
+    tr=trainer(
+        model=model,
+        dataset=datab,
+        epochs=30,
+        folds=2,
+        batch_size=10,
+        use_cuda=True,
+        loss_list=['KLD','reconstruction',"total_loss"],
+        data_dir=pth,
+        in_device=None,
+        num_workers=6,
+    )
+
+    tr.K_fold_train()
     
 if __name__ == "__main__":
     fire.Fire(main)

@@ -11,7 +11,7 @@ def save_dict(dict,path):
 
 def load_dict(path):
     file=open(path,'rb')
-    dict=pickle.load(file,'rb')
+    dict=pickle.load(file)
     file.close()
     return dict
 
@@ -26,25 +26,29 @@ def security_checkpoint(current_epoch,total_epoch,model,optimizer,loss,PATH):
 
 def train(model,optimizer,dataloader,use_cuda,loss_function,in_device=None):
     loss_d=[]
-    bce_d=[]
-    kld_d=[]
+    rec_d=[]
+    con_p_d=[]
+    w_p_d=[]
+    y_p_d=[]
     device="cpu"
     if use_cuda:
         device="cuda"
     if in_device!=None:
         device=in_device
     for idx, batch in tqdm(enumerate(dataloader),desc="instances"):
-        r_img,mu,sig=model(batch["PhantomRGB"].to(device))
-        loss,bce,kld=loss_function(r_img,batch["PhantomRGB"].to(device),mu,sig)
+        loss,reconstruction,conditional_prior,w_prior,y_prior=model.ELBO(batch["PhantomRGB"].to(device))
+        #loss,bce,kld=loss_function(r_img,batch["PhantomRGB"].to(device),mu,sig)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
         
         tqdm.write(
-            "total loss {loss:.4f}\tBCE {bce:.4f}\tKLD {kld:.4f}\tbatch {shape:.4f}".format(
+            "total loss {loss:.4f}\treconstruction {rec:.4f}\tconditional_prior {con_p:.4f}\tw_prior {w_p:.4f}\ty_prioir {y_p:.4f}\tbatch {shape:.4f}".format(
                 loss=loss.item(),
-                bce=bce.item(),
-                kld=kld.item(),
+                rec=reconstruction.item(),
+                con_p=conditional_prior.item(),
+                w_p=w_prior.item(),
+                y_p=y_prior.item(),
                 shape=batch["PhantomRGB"].shape[0]
         )
         )
@@ -52,59 +56,79 @@ def train(model,optimizer,dataloader,use_cuda,loss_function,in_device=None):
 
         #SAVE TRAIN DATA
         loss_d.append(loss.item())
-        bce_d.append(bce.item())
-        kld_d.append(kld.item())
-    return loss_d,bce_d,kld_d
+        rec_d.append(reconstruction.item())
+        con_p_d.append(conditional_prior.item())
+        w_p_d.append(w_prior.item())
+        y_p_d.append(y_prior.item())
+    return loss_d,rec_d,con_p_d,w_p_d,y_p_d
 
 
 def test(model,dataloader,use_cuda,loss_function,in_device=None):
     loss_d=[]
-    bce_d=[]
-    kld_d=[]
+    rec_d=[]
+    con_p_d=[]
+    w_p_d=[]
+    y_p_d=[]
     device="cpu"
     if use_cuda:
         device="cuda"
     if in_device!=None:
         device=in_device
     for idx, batch in tqdm(enumerate(dataloader),desc="Test"):
-        r_img,mu,sig=model(batch["PhantomRGB"].to(device))
-        loss,bce,kld=loss_function(r_img,batch["PhantomRGB"].to(device),mu,sig)
+        loss,reconstruction,conditional_prior,w_prior,y_prior=model.ELBO(batch["PhantomRGB"].to(device))
+        #loss,bce,kld=loss_function(r_img,batch["PhantomRGB"].to(device),mu,sig)
         
         tqdm.write(
-            "total loss {loss:.4f}\tBCE {bce:.4f}\tKLD {kld:.4f}\tbatch {shape:.4f}".format(
+            "total loss {loss:.4f}\treconstruction {rec:.4f}\tconditional_prior {con_p:.4f}\tw_prior {w_p:.4f}\ty_prioir {y_p:.4f}\tbatch {shape:.4f}".format(
                 loss=loss.item(),
-                bce=bce.item(),
-                kld=kld.item(),
+                rec=reconstruction.item(),
+                con_p=conditional_prior.item(),
+                w_p=w_prior.item(),
+                y_p=y_prior.item(),
                 shape=batch["PhantomRGB"].shape[0]
         )
         )
         
         #SAVE TEST DATA
         loss_d.append(loss.item())
-        bce_d.append(bce.item())
-        kld_d.append(kld.item())
-    return loss_d,bce_d,kld_d
+        rec_d.append(reconstruction.item())
+        con_p_d.append(conditional_prior.item())
+        w_p_d.append(w_prior.item())
+        y_p_d.append(y_prior.item())
+    return loss_d,rec_d,con_p_d,w_p_d,y_p_d
 
 def train_test(model,optimizer,train_set,test_set,batch_size,use_cuda,loss_function,epochs,data_train_dir,in_device=None,checkpoint_epoch=0):
     epoch_loss={}
-    epoch_bce={}
-    epoch_kld={}
+    epoch_rec={}
+    epoch_con_p={}
+    epoch_w_p={}
+    epoch_y_p={}
 
     epoch_loss_train=[]
-    epoch_bce_train=[]
-    epoch_kld_train=[]
+    epoch_rec_train=[]
+    epoch_con_p_train=[]
+    epoch_y_p_train=[]
+    epoch_w_p_train=[]
 
     epoch_loss_test=[]
-    epoch_bce_test=[]
-    epoch_kld_test=[]
+    epoch_rec_test=[]
+    epoch_con_p_test=[]
+    epoch_w_p_test=[]
+    epoch_y_p_test=[]
 
     #Is file already exists charge ------------------------------------------------------------------------------------------------------------------------
     if "loss_results.npy" in os.listdir(data_train_dir):
-        epoch_bce_train=np.load(os.path.join(data_train_dir,'bce_results.npy'),allow_pickle=True).tolist()['train']
-        epoch_bce_test=np.load(os.path.join(data_train_dir,'bce_results.npy'),allow_pickle=True).tolist()['valid']
+        epoch_rec_train=np.load(os.path.join(data_train_dir,'rec_results.npy'),allow_pickle=True).tolist()['train']
+        epoch_rec_test=np.load(os.path.join(data_train_dir,'rec_results.npy'),allow_pickle=True).tolist()['valid']
 
-        epoch_kld_train=np.load(os.path.join(data_train_dir,'kld_results.npy'),allow_pickle=True).tolist()['train']
-        epoch_kld_test=np.load(os.path.join(data_train_dir,'kld_results.npy'),allow_pickle=True).tolist()['valid']
+        epoch_con_p_train=np.load(os.path.join(data_train_dir,'con_p_results.npy'),allow_pickle=True).tolist()['train']
+        epoch_con_p_test=np.load(os.path.join(data_train_dir,'con_p_results.npy'),allow_pickle=True).tolist()['valid']
+
+        epoch_y_p_train=np.load(os.path.join(data_train_dir,'y_p_results.npy'),allow_pickle=True).tolist()['train']
+        epoch_y_p_test=np.load(os.path.join(data_train_dir,'y_p_results.npy'),allow_pickle=True).tolist()['valid']
+
+        epoch_w_p_train=np.load(os.path.join(data_train_dir,'w_p_results.npy'),allow_pickle=True).tolist()['train']
+        epoch_w_p_test=np.load(os.path.join(data_train_dir,'w_p_results.npy'),allow_pickle=True).tolist()['valid']
 
         epoch_loss_train=np.load(os.path.join(data_train_dir,'loss_results.npy'),allow_pickle=True).tolist()['train']
         epoch_loss_test=np.load(os.path.join(data_train_dir,'loss_results.npy'),allow_pickle=True).tolist()['valid']
@@ -122,25 +146,30 @@ def train_test(model,optimizer,train_set,test_set,batch_size,use_cuda,loss_funct
         if len(test_set)%batch_size==1:
             drop_test=True
 
-        dataloader_train=torch.utils.data.DataLoader(train_set,batch_size=batch_size,shuffle=True,num_workers=0,drop_last=drop_train)
-        dataloader_test=torch.utils.data.DataLoader(test_set,batch_size=batch_size,shuffle=True,num_workers=0,drop_last=drop_test)
+        dataloader_train=torch.utils.data.DataLoader(train_set,batch_size=batch_size,shuffle=True,num_workers=6,drop_last=drop_train)
+        dataloader_test=torch.utils.data.DataLoader(test_set,batch_size=batch_size,shuffle=True,num_workers=6,drop_last=drop_test)
 
-        loss_tr,bce_tr,kld_tr=train(model,optimizer,dataloader_train,use_cuda,loss_function,in_device)
+        loss_tr,rec_tr,con_p_tr,w_p_tr,y_p_tr=train(model,optimizer,dataloader_train,use_cuda,loss_function,in_device)
     
         epoch_loss_train.append(np.mean(np.array(loss_tr)))
-        epoch_bce_train.append(np.mean(np.array(bce_tr)))
-        epoch_kld_train.append(np.mean(np.array(kld_tr)))
+        epoch_rec_train.append(np.mean(np.array(rec_tr)))
+        epoch_con_p_train.append(np.mean(np.array(con_p_tr)))
+        epoch_w_p_train.append(np.mean(np.array(w_p_tr)))
+        epoch_y_p_train.append(np.mean(np.array(y_p_tr)))
     
-        loss_d,bce_d,kld_d=test(model,dataloader_test,use_cuda,loss_function,in_device)
+        loss_d,rec_d,con_p_d,w_p_d,y_p_d=test(model,dataloader_test,use_cuda,loss_function,in_device)
         #loss_d,bce_d,kld_d=test(model,dataloader_train,use_cuda,loss_function)
         
         if (np.mean(np.array(loss_d)))>best_result:
             best_result=(np.mean(np.array(loss_d)))
             best_model=model.state_dict()
+            #TODO: save always
     
         epoch_loss_test.append(np.mean(np.array(loss_d)))
-        epoch_bce_test.append(np.mean(np.array(bce_d)))
-        epoch_kld_test.append(np.mean(np.array(kld_d)))
+        epoch_rec_test.append(np.mean(np.array(rec_d)))
+        epoch_con_p_test.append(np.mean(np.array(con_p_d)))
+        epoch_w_p_test.append(np.mean(np.array(w_p_d)))
+        epoch_y_p_test.append(np.mean(np.array(y_p_d)))
 
         tqdm.write("epoch {epoch:.2f}%".format(
                     epoch=epoch
@@ -153,18 +182,30 @@ def train_test(model,optimizer,train_set,test_set,batch_size,use_cuda,loss_funct
                         "valid":epoch_loss_test
                             }
 
-        epoch_bce={"train":epoch_bce_train,
-                        "valid":epoch_bce_test
-                            }
-
-        epoch_kld={"train":epoch_kld_train,
-                        "valid":epoch_kld_test
-                            }
+        epoch_rec={
+            "train":epoch_rec_train,
+            "valid":epoch_rec_test
+        }
+        epoch_con_p={
+            "train":epoch_con_p_train,
+            "valid":epoch_con_p_test
+        }
+        epoch_w_p={
+            "train":epoch_w_p_train,
+            "valid":epoch_w_p_test
+        }
+        epoch_y_p={
+            "train":epoch_y_p_train,
+            "valid":epoch_y_p_test
+        }
         
 
         np.save(os.path.join(data_train_dir,"loss_results"+'.npy'),epoch_loss)
-        np.save(os.path.join(data_train_dir,"bce_results"+'.npy'),epoch_bce)
-        np.save(os.path.join(data_train_dir,"kld_results"+'.npy'),epoch_kld)
+
+        np.save(os.path.join(data_train_dir,"bce_results"+'.npy'),epoch_rec)
+        np.save(os.path.join(data_train_dir,"kld_results"+'.npy'),epoch_con_p)
+        np.save(os.path.join(data_train_dir,"kld_results"+'.npy'),epoch_w_p)
+        np.save(os.path.join(data_train_dir,"kld_results"+'.npy'),epoch_y_p)
 
         #SAVE CHECKPOINT ------------------------------------------------------------------------------------------------------------------------------------------------
         security_checkpoint(current_epoch=epoch,
@@ -176,7 +217,7 @@ def train_test(model,optimizer,train_set,test_set,batch_size,use_cuda,loss_funct
                             )
 
     
-    return epoch_loss_train,epoch_bce_train,epoch_kld_train,epoch_loss_test,epoch_bce_test,epoch_kld_test,best_model
+    return epoch_loss_train,epoch_rec_train,epoch_con_p_train,epoch_w_p_train,epoch_y_p_train,epoch_loss_test,epoch_rec_test,epoch_con_p_test,epoch_w_p_test,epoch_y_p_test,best_model
 
 def K_fold_train(model,
                 dataset,
@@ -189,8 +230,12 @@ def K_fold_train(model,
                 in_device=None
                 ):
     fold_loss={}
-    fold_bce={}
-    fold_kld={}
+
+    fold_rec={}
+    fold_con_p={}
+    fold_w_p={}
+    fold_y_p={}
+
 
     #Shuffle data
     train_s=int((len(dataset))*0.8)
@@ -244,7 +289,7 @@ def K_fold_train(model,
 
 
         #Epochs
-        epoch_loss_train,epoch_bce_train,epoch_kld_train,epoch_loss_test,epoch_bce_test,epoch_kld_test,best_model=train_test(
+        epoch_loss_train,epoch_rec_train,epoch_con_p_train,epoch_w_p_train,epoch_y_p_train,epoch_loss_test,epoch_rec_test,epoch_con_p_test,epoch_w_p_test,epoch_y_p_test,best_model=train_test(
             model=model,
             optimizer=optimizer,
             train_set=train_set,
@@ -261,15 +306,24 @@ def K_fold_train(model,
         fold_loss[fold]={"train":epoch_loss_train,
                         "valid":epoch_loss_test
                             }
-
-        fold_bce[fold]={"train":epoch_bce_train,
-                        "valid":epoch_bce_test
-                            }
-
-        fold_kld[fold]={"train":epoch_kld_train,
-                        "valid":epoch_kld_test
-                            }
         
+        fold_rec[fold]={
+            "train":epoch_rec_train,
+            "valid":epoch_rec_test
+        }
+        fold_con_p[fold]={
+            "train":epoch_con_p_train,
+            "valid":epoch_con_p_test
+        }
+        fold_w_p[fold]={
+            "train":epoch_w_p_train,
+            "valid":epoch_w_p_test
+        }
+        fold_y_p[fold]={
+            "train":epoch_y_p_train,
+            "valid":epoch_y_p_test
+        }
+
         torch.save(best_model,"{fname}.pt".format(fname=os.path.join(data_train_dir,"best"+str(fold))))
 
         tqdm.write("fold {fold:.2f}%".format(
@@ -277,5 +331,7 @@ def K_fold_train(model,
                     ))
 
     np.save(os.path.join(data_train_dir,"fold_loss_results"+'.npy'),fold_loss)
-    np.save(os.path.join(data_train_dir,"fold_bce_results"+'.npy'),fold_bce)
-    np.save(os.path.join(data_train_dir,"fold_kld_results"+'.npy'),fold_kld)
+    np.save(os.path.join(data_train_dir,"fold_bce_results"+'.npy'),fold_rec)
+    np.save(os.path.join(data_train_dir,"fold_bce_results"+'.npy'),fold_con_p)
+    np.save(os.path.join(data_train_dir,"fold_bce_results"+'.npy'),fold_w_p)
+    np.save(os.path.join(data_train_dir,"fold_bce_results"+'.npy'),fold_y_p)

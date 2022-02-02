@@ -233,24 +233,28 @@ class Q_NET(nn.Module):
         self.qz_x_mu=NeuralNet(self.NN_input,
                                         self.z_latent_space_size,
                                         layer_sizes=self.layer_sizes,
+                                        activators=[nn.LeakyReLU() for i in range(len(self.layer_sizes))]+[nn.Identity()],#RELU + identity
                                         batch_norm=self.NN_batch_norm
                                         )
 
         self.qz_x_sig=NeuralNet(self.NN_input,
                                         self.z_latent_space_size,
                                         layer_sizes=self.layer_sizes,
+                                        activators=[nn.LeakyReLU() for i in range(len(self.layer_sizes))]+[nn.ReLU()],#RELU + relu
                                         batch_norm=self.NN_batch_norm
                                         )
         #Q(w|x)
         self.qw_x_mu=NeuralNet(self.NN_input,
                                         self.w_latent_space_size,
                                         layer_sizes=self.layer_sizes,
+                                        activators=[nn.LeakyReLU() for i in range(len(self.layer_sizes))]+[nn.Identity()],#RELU + identity
                                         batch_norm=self.NN_batch_norm
                                         )
 
         self.qw_x_sig=NeuralNet(self.NN_input,
                                         self.w_latent_space_size,
                                         layer_sizes=self.layer_sizes,
+                                        activators=[nn.LeakyReLU() for i in range(len(self.layer_sizes))]+[nn.ReLU()],#RELU + relu
                                         batch_norm=self.NN_batch_norm
                                         )
         #P(y|w,z)
@@ -261,7 +265,7 @@ class Q_NET(nn.Module):
         self.py_wz=NeuralNet(self.w_latent_space_size+self.z_latent_space_size,
                                         self.y_latent_space_size,
                                         layer_sizes=self.layer_sizes,
-                                        activators=[nn.ReLU() for i in range(len(self.layer_sizes))]+[nn.Softmax(dim=1)],
+                                        activators=[nn.LeakyReLU() for i in range(len(self.layer_sizes))]+[nn.Softmax(dim=1)],
                                         batch_norm=self.NN_batch_norm
                                         )
     
@@ -306,12 +310,14 @@ class P_NET(nn.Module):
         self.pz_wy_mu=nn.ModuleList([NeuralNet(self.w_latent_space_size,#W
                                         self.z_latent_space_size,
                                         layer_sizes=self.layer_sizes[::-1],
+                                        activators=[nn.LeakyReLU() for i in range(len(self.layer_sizes))]+[nn.Identity()],#RELU + identity
                                         batch_norm=self.NN_batch_norm
                                         ) for i in range(self.y_latent_space_size)])
 
         self.pz_wy_sig=nn.ModuleList([NeuralNet(self.w_latent_space_size,#W
                                         self.z_latent_space_size,
                                         layer_sizes=self.layer_sizes[::-1],
+                                        activators=[nn.LeakyReLU() for i in range(len(self.layer_sizes))]+[nn.ReLU()],#RELU + relu
                                         batch_norm=self.NN_batch_norm
                                         ) for i in range(self.y_latent_space_size)])
         #P(x|z)

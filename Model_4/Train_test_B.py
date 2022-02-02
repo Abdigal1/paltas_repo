@@ -1,9 +1,11 @@
 import pathlib
 import fire as fire
-from B_VAE.VAE_v2 import b_encodeco
+from B_VAE.VAE_v2 import GMVAE
 from Train_utils import train_utils
+from Train_utils.TT_class import trainer
 from B_VAE.Utils_imp_VAE import loss_fn_b
 from Train_utils.train_utils import train,test,K_fold_train
+from torch import nn
 
 import sys
 import os
@@ -19,8 +21,9 @@ from Transforms import rgb_normalize
 import torch
 
 def main():
-    DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,user=aorus_1,volume=Paltas_DataBase/Data_Base_v2"
+    #DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,user=aorus_1,volume=Paltas_DataBase/Data_Base_v2"
     #DB="//MYCLOUDPR4100/Paltas_DataBase/Data_Base_v2"
+    DB="/home/liiarpi-01/proyectopaltas/Local_data_base/Data_Base_v2"
     d_tt=transforms.Compose([
         phantom_segmentation(False),
         rgb_normalize(ImType=['PhantomRGB']),
@@ -34,33 +37,41 @@ def main():
     device='cuda'
 
     #os.path.join("..","Data_prep")
-    T_ID="VAE_v2_3"
+    T_ID="GMVAE_A1_1"
     pth=os.path.join(str(pathlib.Path().absolute()),"results",T_ID)
     print(pth)
 
-    model=b_encodeco(image_dim=int(200),
-                 image_channels=3,
-                 repr_sizes=[10,20,40],
-                 layer_sizes=[100],
-                 latent_space_size=20,
-                 conv_kernel_size=15,
-                 conv_pooling=False,
-                 conv_batch_norm=True,
-                 NN_batch_norm=True,
-                 stride=2,
-                device=device)
+    model=GMVAE(image_dim=int(200),
+        image_channels=3,
+        repr_sizes=[6,12],
+        layer_sizes=[10],
+        w_latent_space_size=5,
+        z_latent_space_size=5,
+        y_latent_space_size=2,
+        conv_kernel_size=3,
+        conv_pooling=False,
+        activators=[nn.Tanh(),nn.ReLU()],
+        conv_batch_norm=True,
+        NN_batch_norm=True,
+        stride=1,
+        device="cpu")
     model.to(device)
     print("model loaded")
 
-    K_fold_train(model=model,
-                dataset=datab,
-                epochs=30,
-                batch_size=2,
-                use_cuda=True,
-                folds=2,
-                data_train_dir=pth,
-                loss_fn=loss_fn_b
-     )
+    tr=trainer(
+        model=model,
+        dataset=datab,
+        epochs=30,
+        folds=2,
+        batch_size=10,
+        use_cuda=True,
+        loss_list=['conditional_prior','w_prior','y_prior','reconstruction',"total_loss"],
+        data_dir=pth,
+        in_device=None,
+        num_workers=6,
+    )
+
+    tr.K_fold_train()
     
 if __name__ == "__main__":
     fire.Fire(main)
