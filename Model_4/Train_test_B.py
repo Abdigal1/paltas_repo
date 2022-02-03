@@ -27,7 +27,7 @@ def main():
     d_tt=transforms.Compose([
         phantom_segmentation(False),
         rgb_normalize(ImType=['PhantomRGB']),
-        multi_image_resize(ImType=['PhantomRGB'],size=(200,200)),
+        multi_image_resize(ImType=['PhantomRGB'],size=(100,100)),
         multi_ToTensor(ImType=['PhantomRGB']),
         output_transform()
         ])
@@ -37,23 +37,23 @@ def main():
     device='cuda'
 
     #os.path.join("..","Data_prep")
-    T_ID="GMVAE_A1_1"
+    T_ID="GMVAE_A1_2"
     pth=os.path.join(str(pathlib.Path().absolute()),"results",T_ID)
     print(pth)
 
-    model=GMVAE(image_dim=int(200),
+    model=GMVAE(image_dim=int(100),
         image_channels=3,
-        repr_sizes=[6,12],
+        repr_sizes=[6,12,24],
         layer_sizes=[10],
         w_latent_space_size=5,
         z_latent_space_size=5,
-        y_latent_space_size=2,
-        conv_kernel_size=3,
+        y_latent_space_size=12,
+        conv_kernel_size=7,
         conv_pooling=False,
-        activators=[nn.Tanh(),nn.ReLU()],
+        activators=[nn.Tanh(),nn.LeakyReLU(),nn.LeakyReLU()],
         conv_batch_norm=True,
         NN_batch_norm=True,
-        stride=1,
+        stride=2,
         device="cpu")
     model.to(device)
     print("model loaded")
