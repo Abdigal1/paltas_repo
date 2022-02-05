@@ -257,8 +257,8 @@ class img_set():
 
 if __name__ == '__main__':
     #lab = img_set(path = '../5_agosto')
-    itp = os.path.join(os.pardir, "Data_Base")
-
+    #itp = os.path.join(os.pardir, "Data_Base")
+    itp = "/home/liiarpi-01/Downloads/Phantom_LASTS"
     for fol in os.listdir(itp):
         lab = img_set(path=os.path.join(itp, fol))
         lab.label()
