@@ -210,7 +210,7 @@ class trainer():
 
         #LOAD INDEXES IS ALREADY EXISTS ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         if "data_split.pkl" in os.listdir(self.data_dir):
-            print("data split finded")
+            print("data split found")
             dict=self.load_dict(os.path.join(self.data_dir,"data_split.pkl"))
             train_index=dict["train_index"]
             test_index=dict["test_index"]
@@ -254,7 +254,7 @@ class trainer():
 
                 checkpoint=torch.load(os.path.join(self.data_dir,"checkpoint.pt"))
                 self.current_epoch=checkpoint["current_epoch"]
-                self.epochs=checkpoint["total_epoch"]
+                #self.epochs=checkpoint["total_epoch"]
                 if self.epochs-1!=self.current_epoch:
 
                     self.model.load_state_dict(checkpoint['model_state_dict'])

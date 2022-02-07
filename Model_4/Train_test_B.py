@@ -61,7 +61,7 @@ def main():
     tr=trainer(
         model=model,
         dataset=datab,
-        epochs=30,
+        epochs=40,
         folds=2,
         batch_size=10,
         use_cuda=True,
