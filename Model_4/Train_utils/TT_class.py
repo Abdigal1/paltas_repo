@@ -237,18 +237,6 @@ class trainer():
             self.optimizer=torch.optim.Adam(self.model.parameters(),lr=1e-3)
 
             #LOAD OPTIMIZER, MODEL, CURRENT EPOCH AND NUMBER OF EPOCHS FROM CHECKPOINT ------------------------------------------------------------------------------------------------------------------------------------------------------------------
-            #if "checkpoint.pt" in os.listdir(self.data_dir):
-            #    print("checkpoint found")
-            #    checkpoint=torch.load(os.path.join(self.data_dir,"checkpoint.pt"))
-            #    self.model.load_state_dict(checkpoint['model_state_dict'])
-            #    self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-            #    self.current_epoch=checkpoint["current_epoch"]
-            #    self.epochs=checkpoint["total_epoch"]
-            #else:
-            #    self.current_epoch=0
-
-
-            #LOAD OPTIMIZER, MODEL, CURRENT EPOCH AND NUMBER OF EPOCHS FROM CHECKPOINT ------------------------------------------------------------------------------------------------------------------------------------------------------------------
             if "checkpoint.pt" in os.listdir(self.data_dir):
                 print("checkpoint found")
 

@@ -30,12 +30,14 @@ class trainer():
 
 
     def create_loss_data(self,dict):
-        ld={}
+        teld={}
+        trld={}
         for l in self.loss_list:
-            ld[l]=[]
+            trld[l]=[]
+            teld[l]=[]
         dict={
-            "train":ld,
-            "test":ld
+            "train":trld,
+            "test":teld
         }
         return dict
 
@@ -71,6 +73,9 @@ class trainer():
             device="cuda"
         if self.in_device!=None:
             device=self.in_device
+        
+        for l in self.loss_list:
+            self.loss_epoch["train"][l]=[]
 
         for idx, batch in tqdm(enumerate(dataloader),desc="instances"):
             losses=self.model.ELBO(batch["PhantomRGB"].to(device))
@@ -95,11 +100,11 @@ class trainer():
 
         #EPOCH MEAN LOSSES
         for l in self.loss_list:
-                self.loss_DATA["train"][l].append(
-                    np.mean(
-                        np.array(self.loss_epoch["train"][l])
-                        )
+            self.loss_DATA["train"][l].append(
+                np.mean(
+                    np.array(self.loss_epoch["train"][l])
                     )
+                )
         return self.loss_epoch
 
 
@@ -110,6 +115,8 @@ class trainer():
         if self.in_device!=None:
             device=self.in_device
 
+        for l in self.loss_list:
+            self.loss_epoch["train"][l]=[]
         
         for idx, batch in tqdm(enumerate(dataloader),desc="Test"):
             losses=self.model.ELBO(batch["PhantomRGB"].to(device))
@@ -128,17 +135,18 @@ class trainer():
 
         #EPOCH MEAN LOSSES
         for l in self.loss_list:
-                self.loss_DATA["test"][l].append(
-                    np.mean(
-                        np.array(self.loss_epoch["test"][l])
-                        )
+            self.loss_DATA["test"][l].append(
+                np.mean(
+                    np.array(self.loss_epoch["test"][l])
                     )
+                )
         return self.loss_epoch
 
     def train_test(self,train_set,test_set):
 
         #Is file already exists charge ------------------------------------------------------------------------------------------------------------------------
         if "loss_results.npy" in os.listdir(self.data_dir):
+            print("result found")
             self.loss_DATA=np.load(os.path.join(self.data_dir,'loss_results.npy'),allow_pickle=True).tolist()
 
 
@@ -177,7 +185,7 @@ class trainer():
 
             #SAVE CHECKPOINT ------------------------------------------------------------------------------------------------------------------------------------------------
             self.security_checkpoint(current_epoch=epoch,
-                                loss=self.loss_epoch["train"]["total_loss"],
+                                loss=loss_epoch["train"]["total_loss"],
                                 )
 
 
@@ -202,6 +210,7 @@ class trainer():
 
         #LOAD INDEXES IS ALREADY EXISTS ------------------------------------------------------------------------------------------------------------------------------------------------------------------
         if "data_split.pkl" in os.listdir(self.data_dir):
+            print("data split found")
             dict=self.load_dict(os.path.join(self.data_dir,"data_split.pkl"))
             train_index=dict["train_index"]
             test_index=dict["test_index"]
@@ -229,14 +238,20 @@ class trainer():
 
             #LOAD OPTIMIZER, MODEL, CURRENT EPOCH AND NUMBER OF EPOCHS FROM CHECKPOINT ------------------------------------------------------------------------------------------------------------------------------------------------------------------
             if "checkpoint.pt" in os.listdir(self.data_dir):
-                checkpoint=torch.load(os.path.join(self.data_dir,"checkpoint.pt"))
-                self.model.load_state_dict(checkpoint['model_state_dict'])
-                self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-                self.current_epoch=checkpoint["current_epoch"]
-                self.epochs=checkpoint["total_epoch"]
-            else:
-                self.current_epoch=0
+                print("checkpoint found")
 
+                checkpoint=torch.load(os.path.join(self.data_dir,"checkpoint.pt"))
+                self.current_epoch=checkpoint["current_epoch"]
+                #self.epochs=checkpoint["total_epoch"]
+                if self.epochs-1!=self.current_epoch:
+
+                    self.model.load_state_dict(checkpoint['model_state_dict'])
+                    self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+                else:
+                    print("was the last")
+
+            else:
+                checkpoint_epoch=0
 
             #Epochs
             best_model=self.train_test(
