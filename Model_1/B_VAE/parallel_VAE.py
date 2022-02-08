@@ -12,6 +12,7 @@ class b_encodeco(nn.Module):
                  layer_sizes=[300],
                  latent_space_size=20,
                  conv_kernel_size=5,
+                 activators=[nn.Tanh(),nn.ReLU(),nn.ReLU(),nn.ReLU()],
                  conv_pooling=True,
                  conv_batch_norm=True,
                  NN_batch_norm=True,
@@ -19,12 +20,15 @@ class b_encodeco(nn.Module):
                  in_device="cpu"
                 ):
         super(b_encodeco,self).__init__()
+
+        self.losses={}
         
 
         self.conv_pooling=conv_pooling
         self.conv_batch_norm=conv_batch_norm
         self.NN_batch_norm=NN_batch_norm
         self.conv_kernel_size=conv_kernel_size
+        self.activators=activators
 
         self.layer_sizes=layer_sizes
         self.NN_input=(self.compute_odim(image_dim,repr_sizes)[0]*self.compute_odim(image_dim,repr_sizes)[1])*repr_sizes[-1]
@@ -35,6 +39,7 @@ class b_encodeco(nn.Module):
         self.encoder_conv=(b_encoder_conv(image_channels=image_channels,
                                         repr_sizes=repr_sizes,
                                         kernel_size=self.conv_kernel_size,
+                                        activators=self.activators,
                                         pooling=self.conv_pooling,
                                         batch_norm=self.conv_batch_norm,
                                         stride=stride
@@ -65,6 +70,7 @@ class b_encodeco(nn.Module):
         self.decoder_conv=(b_decoder_conv(image_channels=image_channels,
                                         repr_sizes=repr_sizes,
                                         kernel_size=self.conv_kernel_size,
+                                        activators=self.activators,
                                         pooling=self.conv_pooling,
                                         batch_norm=self.conv_batch_norm,
                                         stride=stride
@@ -104,3 +110,24 @@ class b_encodeco(nn.Module):
         z=self.lact(z.to('cuda:0'))
         
         return z,mu.to('cuda:0'),sig.to('cuda:0')
+
+    def reconstruction_loss(self,r_x,x):
+        BCE=F.mse_loss(r_x,x,reduction='mean')
+        return BCE
+
+    def KLD_loss(self,z_mean,z_logvar):
+        KLD=-0.5*torch.mean(1+z_logvar-z_mean.pow(2)-z_logvar.exp())
+        return KLD
+
+    def ELBO(self,x):
+        x_r,z_mean,z_logvar=self.forward(x)
+        reconstruction=self.reconstruction_loss(x_r,x)
+        KLD=self.KLD_loss(z_mean,z_logvar)
+        loss=reconstruction\
+            +KLD
+        #BUILD LOSSES DICT
+        self.losses['KLD']=KLD
+        self.losses['reconstruction']=reconstruction
+        self.losses["total_loss"]=loss
+        
+        return self.losses

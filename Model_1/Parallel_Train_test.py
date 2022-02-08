@@ -1,10 +1,11 @@
 import pathlib
 import fire as fire
 from B_VAE.parallel_VAE import b_encodeco
-from Train_utils import train_utils
-from B_VAE.Utils_imp_VAE import loss_fn_b
-from B_VAE.Utils_imp_VAE import MSEloss_fn_b
-from Train_utils.train_utils import train,test,K_fold_train
+#from Train_utils import train_utils
+#from B_VAE.Utils_imp_VAE import loss_fn_b
+#from B_VAE.Utils_imp_VAE import MSEloss_fn_b
+#from Train_utils.train_utils import train,test,K_fold_train
+from Train_utils.TT_class import trainer
 
 import sys
 import os
@@ -17,7 +18,8 @@ from Transforms import multi_ToTensor
 from Transforms import output_transform
 from Transforms import rgb_normalize
 
-import torch
+#import torch
+from torch import nn
 
 def main():
     #DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,user=paltas,volume=Paltas_DataBase/Data_Base_v2"
@@ -37,7 +39,7 @@ def main():
     
 
     #os.path.join("..","Data_prep")
-    T_ID="VAE_5"
+    T_ID="VAE_6"
     pth=os.path.join(str(pathlib.Path().absolute()),"results",T_ID)
     print(pth)
 
@@ -47,6 +49,7 @@ def main():
                  layer_sizes=[80,50],
                  latent_space_size=50,
                  conv_kernel_size=25,
+                 activators=[nn.Tanh(),nn.ReLU(),nn.ReLU()],
                  conv_pooling=False,
                  conv_batch_norm=True,
                  NN_batch_norm=True,
@@ -56,20 +59,20 @@ def main():
 
     print("model loaded")
 
-    try:
-        K_fold_train(model=model,
-                dataset=datab,
-                epochs=30,
-                batch_size=2,
-                use_cuda=True,
-                folds=2,
-                data_train_dir=pth,
-                loss_fn=MSEloss_fn_b,
-                in_device=device
-        )
-    except IndexError as e:
-        print(e)
-    return 0
+    tr=trainer(
+        model=model,
+        dataset=datab,
+        epochs=30,
+        folds=2,
+        batch_size=10,
+        use_cuda=True,
+        loss_list=['KLD','reconstruction',"total_loss"],
+        data_dir=pth,
+        in_device=device,
+        num_workers=10,
+    )
+
+    tr.K_fold_train()
     
 if __name__ == "__main__":
     fire.Fire(main)
