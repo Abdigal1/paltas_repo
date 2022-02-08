@@ -160,6 +160,35 @@ class GMVAE(nn.Module):
         y_prior=torch.mean(torch.sum(py * ( np.log(self.y_latent_space_size,dtype="float32") + torch.log(py) )))
         return y_prior
 
+    def forward_recc_d(self,x_i):
+        x=self.encoder_conv(x_i)
+        x=self.flatten(x)
+        #inference
+        z_x,_,_=self.Q.z_infer(x)
+        #_=self.Q.y_gener(w_x,z_x) #[batch,K]
+        #Generation
+        #_,_,_=self.P.z_gener(w_x) #[batch,K,z_dim]
+        x_mean=self.P.x_gener(z_x)
+        #CNN decoding
+        x_mean=self.flatten(x_mean)
+        x_mean=self.decoder_conv(x_mean)
+        return x_mean
+
+    def forward_recc_u(self,x_i):
+        x=self.encoder_conv(x_i)
+        x=self.flatten(x)
+        #inference
+        z_x,_,_=self.Q.z_infer(x)
+        w_x,_,_=self.Q.w_infer(x)
+        py_wz=self.Q.y_gener(w_x,z_x) #[batch,K]
+        #Generation
+        z_wy,_,_=self.P.z_gener(w_x) #[batch,K,z_dim]
+        x_mean=self.P.x_gener(z_wy[:,torch.argmax(py_wz)])
+        #CNN decoding
+        x_mean=self.flatten(x_mean)
+        x_mean=self.decoder_conv(x_mean)
+        return x_mean
+    
     def ELBO(self,x_i):
         #CNN encoding
         x=self.encoder_conv(x_i)

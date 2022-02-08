@@ -5,9 +5,10 @@ import sys
 sys.path.append(os.path.join("..",".."))
 
 import torch
+from torch import nn
 from Utils import *
 
-from B_VAE.VAE_v2 import b_encodeco
+from B_VAE.VAE_v2 import GMVAE
 
 from torchvision import transforms
 from Custom_dataloader import *
@@ -21,25 +22,30 @@ from Transforms import rgb_normalize
 
 
 def main():
-    res_dir=os.path.join("..",'VAE_v2_2')
-    model_state=torch.load(os.path.join(res_dir,'best1.pt'))
+    res_dir=os.path.join("..",'GMVAE_A1_2')
+    model_state=torch.load(os.path.join(res_dir,'best0.pt'))
 
-    model=b_encodeco(image_dim=int(100),
-                 image_channels=3,
-                 repr_sizes=[5,8,10],
-                 layer_sizes=[100],
-                 latent_space_size=20,
-                 conv_kernel_size=15,
-                 conv_pooling=False,
-                 conv_batch_norm=True,
-                 NN_batch_norm=True,
-                 stride=2,
-                device='cuda')
+    model=GMVAE(image_dim=int(100),
+        image_channels=3,
+        repr_sizes=[6,12,24],
+        layer_sizes=[10],
+        w_latent_space_size=5,
+        z_latent_space_size=5,
+        y_latent_space_size=12,
+        conv_kernel_size=7,
+        conv_pooling=False,
+        activators=[nn.Tanh(),nn.LeakyReLU(),nn.LeakyReLU()],
+        conv_batch_norm=True,
+        NN_batch_norm=True,
+        stride=2,
+        device="cpu")
 
     model.load_state_dict(model_state)
 
-    DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,user=aorus_1,volume=Paltas_DataBase/Data_Base_v2"
-    meta_dir="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,user=aorus_1,volume=Paltas_DataBase/metadata_VAE_v2"
+    #DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,user=aorus_1,volume=Paltas_DataBase/Data_Base_v2"
+    DB="/home/liiarpi-01/proyectopaltas/Local_data_base/Data_Base_v2"
+    #meta_dir="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,user=aorus_1,volume=Paltas_DataBase/metadata_VAE_v2"
+    meta_dir="/home/liiarpi-01/proyectopaltas/Local_data_base/metadata_GMVAE_A1_2"
 
     d_tt=transforms.Compose([
         phantom_segmentation_(False),
@@ -50,7 +56,7 @@ def main():
 
     datab=Dataset_direct(root_dir=DB,ImType=['PhantomRGB'],Intersec=False,transform=d_tt)
 
-    gen_metadata_from_model(data_base=datab,
+    gen_metadata_from_GMVAE(data_base=datab,
                             out_meta_dir=meta_dir,
                             model=model
                             )

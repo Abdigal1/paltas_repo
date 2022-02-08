@@ -101,3 +101,58 @@ class output_transform(object):
         #For Imtype
         sample['landmarks']=self.output_map[sample['landmarks']]
         return sample
+
+class pos_fly_transform(object):
+    """Crop randomly the image in a sample.
+
+    Args:
+        regular (bool): regular o non regular segmentation mask
+    output:
+
+    """
+
+    def __init__(self,fly_map={
+                                '11_junio_1':       0,
+                                '12_mayo_1':        1,
+                                '12_mayo_2':        2,
+                                '13_agosto_1':      3,        
+                                '14_abril_1':       4,
+                                '14_abril_2':       5,
+                                '14_julio_1':       6,
+                                '15_setiembre_1':   7,       
+                                '16_junio_1':       8,
+                                '16_junio_2':       9,
+                                '19_agosto_1':      10,
+                                '19_mayo_1':        11,       
+                                '19_mayo_2':        12,
+                                '23_julio_1':       13,
+                                '23_julio_2':       14,
+                                '23_junio_1':       15,       
+                                '23_junio_2':       16,
+                                '24_setiembre_1':   17,
+                                '26_mayo_1':        18,
+                                '26_mayo_2':        19,       
+                                '28_abril_1':       20,
+                                '28_abril_2':       21,
+                                '29_marzo_1':       22,
+                                '29_marzo_2':       23,       
+                                '2_julio_1':        24,
+                                '2_junio_1':        25,
+                                '5_agosto_1':       26,
+                                '7_mayo_1':         27,
+                                '9_julio_1':        28
+    }
+    ):
+        self.fly_map=fly_map
+
+    def __call__(self, sample):
+        #For Imtype
+        Lat=float(sample['PhantomRGB_metadata']['GPSInfo']["GPSLatitude"][2])
+        Lon=float(sample['PhantomRGB_metadata']['GPSInfo']["GPSLongitude"][2])
+        Alt=float(sample['PhantomRGB_metadata']['GPSInfo']["GPSAltitude"])
+        pos=np.array([Lat,Lon,Alt])
+        date_ohe=np.zeros(29)
+        date_ohe[self.fly_map[sample['Date']]]=1
+        sample["Encoded_date"]=date_ohe
+        sample["GPSposition"]=pos
+        return sample
