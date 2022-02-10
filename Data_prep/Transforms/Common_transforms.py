@@ -3,6 +3,27 @@ import numpy as np
 import torch
 from torchvision import transforms
 
+class hsv_transform(object):
+    """Crop randomly the image in a sample.
+
+    Args:
+        regular (bool): regular o non regular segmentation mask
+    output:
+
+    """
+
+    def __init__(self, ImType=["PhantomRGB"]):
+        assert isinstance(ImType, list)
+        self.ImType=ImType
+
+    def __call__(self, sample):
+        #For Imtype
+        for Type in self.ImType:
+            #Transform to HSV and save H
+            sample[Type]=sample[Type]/255
+        return sample
+
+
 class rgb_normalize(object):
     """Crop randomly the image in a sample.
 
@@ -21,8 +42,6 @@ class rgb_normalize(object):
         for Type in self.ImType:
             # transform sample and save
             sample[Type]=sample[Type]/255
-
-
         return sample
 
 class multi_image_resize(object):
