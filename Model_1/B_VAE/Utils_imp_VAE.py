@@ -187,7 +187,7 @@ class NN_layer(nn.Module):
 
 class NeuralNet(nn.Module):
     def __init__(self,input_size,output_size,layer_sizes=[300,150,50],
-                activators=nn.ReLU(),batch_norm=True):
+                activators=nn.LeakyReLU(),batch_norm=True):
         super(NeuralNet,self).__init__()
         self.layer_sizes=[input_size]+layer_sizes+[output_size]
         #self.activators=activators
