@@ -63,7 +63,7 @@ def main():
         dataset=datab,
         epochs=40,
         folds=2,
-        batch_size=10,
+        batch_size=6,
         use_cuda=True,
         loss_list=['conditional_prior','w_prior','y_prior','reconstruction',"total_loss"],
         data_dir=pth,
