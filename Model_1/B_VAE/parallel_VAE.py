@@ -4,7 +4,7 @@ import torch
 from .general_utils import conv_output_shape
 import numpy as np
 
-class b_encodeco(nn.Module):
+class b_encodeco(nn.Module): # add 3dconv flag ----------------------------------------------------------------
     def __init__(self,
                  image_dim=int(4096/2),
                  image_channels=3,
@@ -112,7 +112,7 @@ class b_encodeco(nn.Module):
         z=self.decoder_conv(z.to('cuda:3'))
         #z=self.lact(z.to('cuda:0'))
         
-        return z,mu.to('cuda:0'),sig.to('cuda:0')
+        return z.to('cuda:0'),mu.to('cuda:0'),sig.to('cuda:0')
 
     def reconstruction_loss(self,r_x,x):
         BCE=F.mse_loss(r_x,x,reduction='mean')

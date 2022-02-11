@@ -39,7 +39,7 @@ def main():
     
 
     #os.path.join("..","Data_prep")
-    T_ID="VAE_6"
+    T_ID="VAE_7"
     pth=os.path.join(str(pathlib.Path().absolute()),"results",T_ID)
     print(pth)
 
