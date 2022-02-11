@@ -127,7 +127,6 @@ class GMVAE(nn.Module):
 
         x_recon=self.flatten(x_recon)
         x_recon=self.decoder_conv(x_recon)
-        x_recon=self.lact(x_recon)
         
         return x_recon,qw_x_mu,qw_x_logsig,qz_x_mu,qz_x_logsig,py
 

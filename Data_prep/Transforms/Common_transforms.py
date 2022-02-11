@@ -1,9 +1,10 @@
 from skimage.transform import resize
+from skimage.color import rgb2hsv
 import numpy as np
 import torch
 from torchvision import transforms
 
-class hsv_transform(object):
+class hue_transform(object):
     """Crop randomly the image in a sample.
 
     Args:
@@ -20,7 +21,7 @@ class hsv_transform(object):
         #For Imtype
         for Type in self.ImType:
             #Transform to HSV and save H
-            sample[Type]=sample[Type]/255
+            sample[Type]=rgb2hsv(sample[Type])[:,:,0]
         return sample
 
 
@@ -130,7 +131,8 @@ class pos_fly_transform(object):
 
     """
 
-    def __init__(self,fly_map={
+    def __init__(self,ImType=["PhantomRGB"],
+                        fly_map={
                                 '11_junio_1':       0,
                                 '12_mayo_1':        1,
                                 '12_mayo_2':        2,
@@ -160,18 +162,53 @@ class pos_fly_transform(object):
                                 '5_agosto_1':       26,
                                 '7_mayo_1':         27,
                                 '9_julio_1':        28
-    }
+    },only_decimals=True
     ):
+        self.ImType=ImType
         self.fly_map=fly_map
+        self.only_decimals=only_decimals
 
     def __call__(self, sample):
-        #For Imtype
+        #TODO: For Imtype
         Lat=float(sample['PhantomRGB_metadata']['GPSInfo']["GPSLatitude"][2])
         Lon=float(sample['PhantomRGB_metadata']['GPSInfo']["GPSLongitude"][2])
         Alt=float(sample['PhantomRGB_metadata']['GPSInfo']["GPSAltitude"])
+        if self.only_decimals:
+            Lat=Lat-int(Lat)
+            Lon=Lon-int(Lon)
+            Alt=Alt-int(Alt)
         pos=np.array([Lat,Lon,Alt])
         date_ohe=np.zeros(29)
         date_ohe[self.fly_map[sample['Date']]]=1
         sample["Encoded_date"]=date_ohe
         sample["GPSposition"]=pos
+        return sample
+
+class concatenate_non_uniform_transform(object):
+    """Crop randomly the image in a sample.
+
+    Args:
+        regular (bool): regular o non regular segmentation mask
+    output:
+
+    """
+
+    def __init__(self,key_to_concatenate=["GPSposition","Encoded_date"]):
+        self.key_to_concatenate=key_to_concatenate
+        self.TT=transforms.ToTensor()
+
+    def __call__(self, sample):
+        #TODO: For Imtype
+        sample["Non_uniform_input"]=(self.TT(
+                                            np.hstack([sample[k] for k in self.key_to_concatenate]).reshape(1,-1)
+                                            #np.hstack([sample[k] for k in self.key_to_concatenate])
+                                            )).to(torch.float)
+        return sample
+
+class only_tensor_transform(object):
+    #def __init__(self):
+    def __call__(self, sample):
+        for k in list(sample.keys()):
+            if not isinstance(sample[k],torch.FloatTensor):
+                sample.pop(k)
         return sample
