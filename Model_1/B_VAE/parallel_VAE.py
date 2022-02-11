@@ -12,7 +12,7 @@ class b_encodeco(nn.Module):
                  layer_sizes=[300],
                  latent_space_size=20,
                  conv_kernel_size=5,
-                 activators=[nn.Tanh(),nn.ReLU(),nn.ReLU(),nn.ReLU()],
+                 activators=[nn.Sigmoid(),nn.ReLU(),nn.ReLU(),nn.ReLU()],
                  conv_pooling=True,
                  conv_batch_norm=True,
                  NN_batch_norm=True,
@@ -49,13 +49,15 @@ class b_encodeco(nn.Module):
         self.encoder_NN_mu=(NeuralNet(self.NN_input,
                                         self.latent_space_size,
                                         layer_sizes=self.layer_sizes,
-                                        batch_norm=self.NN_batch_norm
+                                        batch_norm=self.NN_batch_norm,
+                                        activators=[nn.LeakyReLU() for i in range(len(self.layer_sizes))]+[nn.Identity()],#RELU + identity
                                         )).to('cuda:1')
 
         self.encoder_NN_sig=(NeuralNet(self.NN_input,
                                         self.latent_space_size,
                                         layer_sizes=self.layer_sizes,
-                                        batch_norm=self.NN_batch_norm
+                                        batch_norm=self.NN_batch_norm,
+                                        activators=[nn.LeakyReLU() for i in range(len(self.layer_sizes))]+[nn.Identity()],#RELU + identity
                                         )).to('cuda:1')
         
         self.flatten=s_view()
@@ -63,7 +65,8 @@ class b_encodeco(nn.Module):
         self.decoder_NN=(NeuralNet(self.latent_space_size,
                                         self.NN_input,
                                         layer_sizes=self.layer_sizes[::-1],
-                                        batch_norm=self.NN_batch_norm
+                                        batch_norm=self.NN_batch_norm,
+                                        activators=nn.LeakyReLU()
                                         )).to('cuda:2')
 
         #To GPU 4
@@ -75,7 +78,7 @@ class b_encodeco(nn.Module):
                                         batch_norm=self.conv_batch_norm,
                                         stride=stride
                                         )).to('cuda:3')
-        self.lact=(nn.Sigmoid()).to('cuda:3')
+        #self.lact=(nn.Sigmoid()).to('cuda:3')
         
     def compute_odim(self,idim,repr_sizes):
         if isinstance(self.conv_pooling,bool):
@@ -107,7 +110,7 @@ class b_encodeco(nn.Module):
         z=self.decoder_NN(z.to('cuda:2'))
         z=self.flatten(z.to('cpu'))
         z=self.decoder_conv(z.to('cuda:3'))
-        z=self.lact(z.to('cuda:0'))
+        #z=self.lact(z.to('cuda:0'))
         
         return z,mu.to('cuda:0'),sig.to('cuda:0')
 
