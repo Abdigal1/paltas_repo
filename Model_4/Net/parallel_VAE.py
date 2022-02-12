@@ -8,6 +8,9 @@ sys.path.append(os.path.join("..","DL_utils"))
 from B_VAE.Utils_imp_VAE import *
 from B_VAE.general_utils import conv_output_shape
 
+from .P_NET import P_NET
+from .Q_NET import Q_NET
+
 from torch import nn
 import torch
 import numpy as np
@@ -22,7 +25,7 @@ class Parallel_GMVAE(nn.Module):
                  z_latent_space_size=20,
                  y_latent_space_size=20,
                  conv_kernel_size=5,
-                 activators=[nn.Tanh(),nn.ReLU(),nn.ReLU(),nn.ReLU()],
+                 activators=[nn.Sigmoid(),nn.ReLU(),nn.ReLU(),nn.ReLU()],
                  conv_pooling=True,
                  conv_batch_norm=True,
                  NN_batch_norm=True,

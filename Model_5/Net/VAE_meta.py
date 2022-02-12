@@ -64,7 +64,7 @@ class b_encodeco(nn.Module):
                                     self.pre_output,
                                     layer_sizes=self.pre_layer_sizes,
                                     batch_norm=self.NN_batch_norm
-                                    ) # TODO: Add other input
+                                    )
 
         self.encoder_NN_mu=NeuralNet(self.pre_output,
                                         self.latent_space_size,
