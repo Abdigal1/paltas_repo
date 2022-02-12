@@ -19,7 +19,7 @@ class ndvi_desc():
 
     def __call__(self, sample):
         rgb, nir, mask, landmarks = sample['SenteraRGB'],\
-            sample['SenteraNIR'], sample['SenteraMask'],\
+            sample['SenteraNIR'], sample['SenteraMASK'],\
                  sample['landmarks']
         
         if self.statistic:

@@ -1,15 +1,14 @@
-import pathlib
-import fire as fire
-from B_VAE.VAE_v2 import GMVAE
-from Train_utils import train_utils
-from Train_utils.TT_class import trainer
-from B_VAE.Utils_imp_VAE import loss_fn_b
-from Train_utils.train_utils import train,test,K_fold_train
-from torch import nn
-
 import sys
 import os
+
 sys.path.append(os.path.join("..","Data_prep"))
+sys.path.append(os.path.join("..","DL_utils"))
+
+from Train_utils.TT_class import trainer
+
+import pathlib
+import fire as fire
+from Net.VAE_v2 import GMVAE
 from torchvision import transforms
 from Custom_dataloader import *
 from Transforms import phantom_segmentation
@@ -18,7 +17,7 @@ from Transforms import multi_ToTensor
 from Transforms import output_transform
 from Transforms import rgb_normalize
 
-import torch
+from torch import nn
 
 def main():
     #DB="/run/user/1000/gvfs/afp-volume:host=MyCloudPR4100.local,user=aorus_1,volume=Paltas_DataBase/Data_Base_v2"

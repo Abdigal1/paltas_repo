@@ -1,3 +1,10 @@
+import sys
+import os
+
+sys.path.append(os.path.join("..","ndvi"))
+
+from ndvi_transform import ndvi_desc
+
 from skimage.transform import resize
 from skimage.color import rgb2hsv
 import numpy as np
@@ -212,3 +219,5 @@ class only_tensor_transform(object):
             if not isinstance(sample[k],torch.FloatTensor):
                 sample.pop(k)
         return sample
+
+

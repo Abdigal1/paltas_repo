@@ -5,7 +5,7 @@ import os
 import pickle
 
 class trainer():
-    def __init__(self,model,dataset,epochs,folds,batch_size,use_cuda,loss_list,data_dir,in_device=None,num_workers=0):
+    def __init__(self,model,dataset,epochs,folds,batch_size,use_cuda,loss_list,data_dir,in_device=None,num_workers=0,args=["PhantomRGB"],uniform=True):
         self.epochs=epochs
         self.dataset=dataset
         self.folds=folds
@@ -14,6 +14,8 @@ class trainer():
         self.use_cuda=use_cuda
         self.in_device=in_device
         self.data_dir=data_dir
+        self.args=args
+        self.uniform=uniform
         self.losses={}
         self.loss_DATA={}
         self.loss_DATA_FOLD={}
@@ -78,7 +80,11 @@ class trainer():
             self.loss_epoch["train"][l]=[]
 
         for idx, batch in tqdm(enumerate(dataloader),desc="instances"):
-            losses=self.model.ELBO(batch["PhantomRGB"].to(device))
+            if self.uniform:
+                losses=self.model.ELBO(batch[self.args[0]].to(device))
+            else:
+                args=(batch[arg].to(device) for arg in self.args)
+                losses=self.model.ELBO(*(args))
             
             loss=losses["total_loss"]
             self.optimizer.zero_grad()
@@ -89,7 +95,7 @@ class trainer():
 
             tqdm.write(
                 msg+" \tbatch {shape:.4f}".format(
-                    shape=batch["PhantomRGB"].shape[0]
+                    shape=batch[self.args[0]].shape[0]
             )
             )
 
@@ -119,13 +125,17 @@ class trainer():
             self.loss_epoch["test"][l]=[]
         
         for idx, batch in tqdm(enumerate(dataloader),desc="Test"):
-            losses=self.model.ELBO(batch["PhantomRGB"].to(device))
+            if self.uniform:
+                losses=self.model.ELBO(batch[self.args[0]].to(device))
+            else:
+                args=(batch[arg].to(device) for arg in self.args)
+                losses=self.model.ELBO(*(args))
 
             msg=self.prep_log(losses)
 
             tqdm.write(
                 msg+" \tbatch {shape:.4f}".format(
-                    shape=batch["PhantomRGB"].shape[0]
+                    shape=batch[self.args[0]].shape[0]
             )
             )
 

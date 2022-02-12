@@ -1,15 +1,14 @@
-import pathlib
-import fire as fire
-from B_VAE.parallel_VAE import b_encodeco
-#from Train_utils import train_utils
-#from B_VAE.Utils_imp_VAE import loss_fn_b
-#from B_VAE.Utils_imp_VAE import MSEloss_fn_b
-#from Train_utils.train_utils import train,test,K_fold_train
-from Train_utils.TT_class import trainer
-
 import sys
 import os
+
 sys.path.append(os.path.join("..","Data_prep"))
+sys.path.append(os.path.join("..","DL_utils"))
+
+from Train_utils.TT_class import trainer
+
+import pathlib
+import fire as fire
+from Net.parallel_VAE import b_encodeco
 from torchvision import transforms
 from Custom_dataloader import *
 from Transforms import phantom_segmentation
@@ -18,7 +17,6 @@ from Transforms import multi_ToTensor
 from Transforms import output_transform
 from Transforms import rgb_normalize
 
-#import torch
 from torch import nn
 
 def main():
