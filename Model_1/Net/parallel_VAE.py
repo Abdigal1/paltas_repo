@@ -41,7 +41,7 @@ class b_encodeco(nn.Module): # add 3dconv flag ---------------------------------
         self.activators=activators
 
         self.layer_sizes=layer_sizes
-        self.NN_input=(self.compute_odim(image_dim,repr_sizes)[0]*self.compute_odim(image_dim,repr_sizes)[1])*repr_sizes[-1]
+        self.NN_input=(self.compute_odim(image_dim,repr_sizes,stride=stride)[0]*self.compute_odim(image_dim,repr_sizes,stride=stride)[1])*repr_sizes[-1]
         self.latent_space_size=latent_space_size
         self.in_device=in_device
         
@@ -90,7 +90,7 @@ class b_encodeco(nn.Module): # add 3dconv flag ---------------------------------
                                         )).to('cuda:3')
         #self.lact=(nn.Sigmoid()).to('cuda:3')
         
-    def compute_odim(self,idim,repr_sizes):
+    def compute_odim(self,idim,repr_sizes,stride):
         if isinstance(self.conv_pooling,bool):
             pool_l=[self.conv_pooling for i in range(len(repr_sizes))]
         else:
@@ -98,7 +98,10 @@ class b_encodeco(nn.Module): # add 3dconv flag ---------------------------------
 
         odim=idim
         for i in range(len(repr_sizes)+np.sum(np.array(pool_l).astype(int))):
-            odim=conv_output_shape(odim,kernel_size=self.conv_kernel_size, stride=1, pad=0, dilation=1)
+            if stride==1:
+                odim=conv_output_shape(odim,kernel_size=self.conv_kernel_size, stride=stride, pad=0, dilation=1)
+            elif stride==2:
+                odim=conv_output_shape(odim,kernel_size=self.conv_kernel_size, stride=stride, pad=int((self.conv_kernel_size-1)/2), dilation=1)
         return odim
 
     def reparametrization(self,mu,logvar):
