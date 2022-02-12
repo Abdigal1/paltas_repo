@@ -8,6 +8,9 @@ sys.path.append(os.path.join("..","DL_utils"))
 from B_VAE.Utils_imp_VAE import *
 from B_VAE.general_utils import conv_output_shape
 
+from .P_NET import P_NET
+from .Q_NET import Q_NET
+
 from torch import nn
 import torch
 import numpy as np
