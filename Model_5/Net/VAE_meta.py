@@ -170,26 +170,26 @@ class b_encodeco(nn.Module):
         KLD=-0.5*torch.mean(1+z_logvar-z_mean.pow(2)-z_logvar.exp())
         return KLD
     
-    def ELBO(self,x):
-        x_r,z_mean,z_logvar=self.forward(x)
-
-        reconstruction=self.reconstruction_loss(x_r,x)
-        KLD=self.KLD_loss(z_mean,z_logvar)
-
-        loss=reconstruction\
-            +KLD
-
-        #BUILD LOSSES DICT
-        self.losses['KLD']=KLD
-        self.losses['reconstruction']=reconstruction
-        self.losses["total_loss"]=loss
-        
-        return self.losses
+#    def ELBO(self,x):
+#        x_r,z_mean,z_logvar=self.forward(x)
+#
+#        reconstruction=self.reconstruction_loss(x_r,x)
+#        KLD=self.KLD_loss(z_mean,z_logvar)
+#
+#        loss=reconstruction\
+#            +KLD
+#
+#        #BUILD LOSSES DICT
+#        self.losses['KLD']=KLD
+#        self.losses['reconstruction']=reconstruction
+#        self.losses["total_loss"]=loss
+#        
+#        return self.losses
     
-    def ELBO_non_uniform(self,x1,x2):
+    def ELBO(self,x1,x2):
         x1_r,x2_r,z_mean,z_logvar=self.forward_non_uniform(x1,x2)
 
-        reconstruction=self.reconstruction_loss(x1_r,x1)+self.reconstruction_loss(x2_r,x2)
+        reconstruction=self.reconstruction_loss(x1_r,x1)+self.reconstruction_loss(x2_r,x2.squeeze(1).squeeze(1))
         KLD=self.KLD_loss(z_mean,z_logvar)
 
         loss=reconstruction\
