@@ -28,19 +28,18 @@ def main():
 
     d_tt=transforms.Compose([
         phantom_segmentation(False),
-        #rgb_normalize(ImType=['PhantomRGB']),
-        hue_transform(),
+        rgb_normalize(ImType=['PhantomRGB']),
         multi_image_resize(ImType=['PhantomRGB'],size=(200,200)),
         multi_ToTensor(ImType=['PhantomRGB']),
         output_transform()
         ])
 
     model=b_encodeco(image_dim=int(200),
-                 image_channels=1,
+                 image_channels=3,
                  repr_sizes=[8,16,32],
-                 layer_sizes=[100,50],
-                 latent_space_size=25,
-                 conv_kernel_size=20,
+                 layer_sizes=[200,100,50],
+                 latent_space_size=12,
+                 conv_kernel_size=15,
                  activators=[nn.Sigmoid(),nn.LeakyReLU(),nn.LeakyReLU()],
                  conv_pooling=False,
                  conv_batch_norm=True,
@@ -54,7 +53,7 @@ def main():
     
 
     #os.path.join("..","Data_prep")
-    T_ID="VAE_v2_6"
+    T_ID="VAE_A1_7"
     pth=os.path.join(str(pathlib.Path().absolute()),"results",T_ID)
     print(pth)
 
