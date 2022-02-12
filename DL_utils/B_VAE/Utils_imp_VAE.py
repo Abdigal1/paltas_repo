@@ -47,31 +47,9 @@ class set_conv(nn.Module):
             x=l(x)
         return x
 
-#class set_3Dconv(nn.Module):
-#    def __init__(self,repr_size_in,repr_size_out,kernel_size=5,act=nn.ReLU(),pooling=True,batch_norm=True,stride=1):
-#        super(set_conv, self).__init__()
-#        self.stride=stride
-#        if stride==1:
-#            self.padding=0
-#        elif stride==2:
-#            self.padding=int((kernel_size-1)/2)
-#
-#        self.comp_layer=nn.ModuleList(
-#            [nn.Conv2d(repr_size_in,repr_size_out,kernel_size=kernel_size,stride=self.stride,padding=self.padding)]+\
-#                [act]+\
-#                ([nn.MaxPool2d(kernel_size=kernel_size,stride=self.stride,padding=self.padding)] if pooling else []) +\
-#                ([nn.BatchNorm2d(repr_size_out)] if batch_norm else [])
-#        )
-#
-#    def forward(self,x):
-#        for l in self.comp_layer:
-#            x=l(x)
-#        return x
-
 class set_deconv(nn.Module):
-    def __init__(self,repr_size_in,repr_size_out,kernel_size=5,act=nn.ReLU(),pooling=True,batch_norm=True,stride=1,conv3D_mode=False):
+    def __init__(self,repr_size_in,repr_size_out,kernel_size=5,act=nn.ReLU(),pooling=True,batch_norm=True,stride=1):
         super(set_deconv, self).__init__()
-        self.conv3D_mode=conv3D_mode
         self.stride=stride
         if stride==1:
             self.padding=0
@@ -96,6 +74,7 @@ class b_encoder_conv(nn.Module): # add 3dconv flag -----------------------------
                 kernel_size=5,activators=nn.ReLU(),pooling=True,batch_norm=True,stride=1):
         super(b_encoder_conv, self).__init__()
         self.repr_sizes=[image_channels]+repr_sizes
+        self.stride=[stride for i in range(len(repr_sizes))]
         #self.activators=activators
         #kernels
         if isinstance(kernel_size,int):
@@ -125,14 +104,16 @@ class b_encoder_conv(nn.Module): # add 3dconv flag -----------------------------
                 kernel_size,
                 act,
                 pooling,
-                batch_norm)
-                for repr_in,repr_out,kernel_size,act,pooling,batch_norm in zip(
+                batch_norm,
+                stride)
+                for repr_in,repr_out,kernel_size,act,pooling,batch_norm,stride in zip(
                     self.repr_sizes[:-1],
                     self.repr_sizes[1:],
                     self.kernels,
                     self.activators,
                     self.pooling,
-                    self.batch_norm
+                    self.batch_norm,
+                    self.stride
                 )
             ]
         )
@@ -147,6 +128,7 @@ class b_decoder_conv(nn.Module): # add 3dconv flag -----------------------------
         super(b_decoder_conv,self).__init__()
         self.repr_sizes=[image_channels]+repr_sizes
         self.repr_sizes=self.repr_sizes[::-1]
+        self.stride=[stride for i in range(len(repr_sizes))]
         
         #kernels
         if isinstance(kernel_size,int):
@@ -177,14 +159,16 @@ class b_decoder_conv(nn.Module): # add 3dconv flag -----------------------------
                 kernel_size,
                 act,
                 pooling,
-                batch_norm)
-                for repr_in,repr_out,kernel_size,act,pooling,batch_norm in zip(
+                batch_norm,
+                stride)
+                for repr_in,repr_out,kernel_size,act,pooling,batch_norm,stride in zip(
                     self.repr_sizes[:-1],
                     self.repr_sizes[1:],
                     self.kernels,
                     self.activators,
                     self.pooling,
-                    self.batch_norm
+                    self.batch_norm,
+                    self.stride
                 )
             ]
         )
