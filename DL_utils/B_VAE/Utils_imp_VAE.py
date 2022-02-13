@@ -75,11 +75,7 @@ class b_encoder_conv(nn.Module):
         super(b_encoder_conv, self).__init__()
         self.repr_sizes=[image_channels]+repr_sizes
         self.stride=[stride for i in range(len(repr_sizes))]
-<<<<<<< HEAD
         
-=======
-        #self.activators=activators
->>>>>>> cb7e5270448dc947ab3c438935d504db7715d166
         #kernels
         if isinstance(kernel_size,int):
             self.kernels=[kernel_size for i in range(len(repr_sizes))]
@@ -109,12 +105,8 @@ class b_encoder_conv(nn.Module):
                 act,
                 pooling,
                 batch_norm,
-<<<<<<< HEAD
                 stride
                 )
-=======
-                stride)
->>>>>>> cb7e5270448dc947ab3c438935d504db7715d166
                 for repr_in,repr_out,kernel_size,act,pooling,batch_norm,stride in zip(
                     self.repr_sizes[:-1],
                     self.repr_sizes[1:],
@@ -169,12 +161,8 @@ class b_decoder_conv(nn.Module):
                 act,
                 pooling,
                 batch_norm,
-<<<<<<< HEAD
                 stride
                 )
-=======
-                stride)
->>>>>>> cb7e5270448dc947ab3c438935d504db7715d166
                 for repr_in,repr_out,kernel_size,act,pooling,batch_norm,stride in zip(
                     self.repr_sizes[:-1],
                     self.repr_sizes[1:],

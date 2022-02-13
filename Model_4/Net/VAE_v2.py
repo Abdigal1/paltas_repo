@@ -43,7 +43,7 @@ class GMVAE(nn.Module):
         self.activators=activators
 
         self.layer_sizes=layer_sizes
-        self.NN_input=(self.compute_odim(image_dim,repr_sizes)[0]*self.compute_odim(image_dim,repr_sizes)[1])*repr_sizes[-1]
+        self.NN_input=(self.compute_odim(image_dim,repr_sizes,stride=stride)[0]*self.compute_odim(image_dim,repr_sizes,stride=stride)[1])*repr_sizes[-1]
         self.w_latent_space_size=w_latent_space_size
         self.z_latent_space_size=z_latent_space_size
         self.y_latent_space_size=y_latent_space_size
@@ -85,7 +85,7 @@ class GMVAE(nn.Module):
                                         stride=stride
                                         )
         
-    def compute_odim(self,idim,repr_sizes):
+    def compute_odim(self,idim,repr_sizes,stride):
         if isinstance(self.conv_pooling,bool):
             pool_l=[self.conv_pooling for i in range(len(repr_sizes))]
         else:
@@ -93,7 +93,10 @@ class GMVAE(nn.Module):
 
         odim=idim
         for i in range(len(repr_sizes)+np.sum(np.array(pool_l).astype(int))):
-            odim=conv_output_shape(odim,kernel_size=self.conv_kernel_size, stride=1, pad=0, dilation=1)
+            if stride==1:
+                odim=conv_output_shape(odim,kernel_size=self.conv_kernel_size, stride=stride, pad=0, dilation=1)
+            elif stride==2:
+                odim=conv_output_shape(odim,kernel_size=self.conv_kernel_size, stride=stride, pad=int((self.conv_kernel_size-1)/2), dilation=1)
         return odim
 
     def reparametrization(self,mu,logvar):
