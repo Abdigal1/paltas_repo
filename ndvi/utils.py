@@ -43,9 +43,13 @@ def get_clothe_masks(img):
 def compute_ndvi(rgb_img, nir_img, mask, statistic=True):
     ## Registration
     rgb_ = cv2.resize(rgb_img, (600, 450))
+    if rgb_.dtype != np.uint8:
+        rgb_ = rgb_.astype(np.uint8)
     rgb_ = cv2.cvtColor(rgb_, cv2.COLOR_BGR2GRAY) 
     
     nir_ = cv2.resize(nir_img, (600, 450))
+    if nir_.dtype != np.uint8:
+        nir_ = nir_.astype(np.uint8)
     nir_ = nir_[:, :, 0]
     
     akaze = cv2.xfeatures2d.SIFT_create()
