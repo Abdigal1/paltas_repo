@@ -42,8 +42,8 @@ class P_NET(nn.Module):
                                         batch_norm=self.NN_batch_norm
                                         )
     def z_gener(self,w,n_particle=1):
-        z_mean=torch.concat([self.pz_wy_mu[i](w).unsqueeze(1) for i in range(self.y_latent_space_size)],dim=1)
-        z_logsig=torch.concat([self.pz_wy_sig[i](w).unsqueeze(1) for i in range(self.y_latent_space_size)],dim=1)
+        z_mean=torch.cat([self.pz_wy_mu[i](w).unsqueeze(1) for i in range(self.y_latent_space_size)],dim=1)
+        z_logsig=torch.cat([self.pz_wy_sig[i](w).unsqueeze(1) for i in range(self.y_latent_space_size)],dim=1)
         z=self.reparametrization(z_mean,z_logsig,n_particle)
         return z,z_mean,z_logsig
 
