@@ -24,20 +24,19 @@ def main():
     DB="/home/lambda/paltas/Local_data_base/Data_Base_v2"
     #DB="//MYCLOUDPR4100/Paltas_DataBase/Data_Base_v2"
     d_tt=transforms.Compose([
-        phantom_segmentation(False,True),
-        multi_image_resize(ImType=['PhantomRGB'],size=(512,512)),
-        hue_transform(),
-        multi_ToTensor(ImType=['PhantomRGB']),
+        ndvi_desc(),
+        multi_image_resize(ImType=['SenteraNDVI'],size=(512,512)),
+        multi_ToTensor(ImType=['SenteraNDVI']),
         only_tensor_transform()
         ])
 
-    datab=Dataset_direct(root_dir=DB,ImType=['PhantomRGB'],Intersec=False,transform=d_tt)
+    datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB','SenteraNIR','SenteraMASK'],Intersec=False,transform=d_tt)
     print("data loaded")
     device='cuda:0'
     
 
     #os.path.join("..","Data_prep")
-    T_ID="VAE_9"
+    T_ID="VAE_10"
     pth=os.path.join(str(pathlib.Path().absolute()),"results",T_ID)
     print(pth)
 
@@ -62,7 +61,7 @@ def main():
         dataset=datab,
         epochs=30,
         folds=2,
-        batch_size=4,
+        batch_size=8,
         use_cuda=True,
         loss_list=['KLD','reconstruction',"total_loss"],
         data_dir=pth,
