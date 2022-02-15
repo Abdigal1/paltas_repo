@@ -11,7 +11,7 @@ import fire as fire
 from Net.VAE_meta import b_encodeco
 from torchvision import transforms
 from Custom_dataloader import *
-from Transforms import phantom_segmentation
+from Transforms import *
 from Transforms import multi_image_resize
 from Transforms import multi_ToTensor
 from Transforms import hue_transform
@@ -31,9 +31,9 @@ def main():
 
     d_tt=transforms.Compose([
         phantom_segmentation(False,non_uniform_input=True),
-        #rgb_normalize(ImType=['PhantomRGB']),
-        hue_transform(),
-        multi_image_resize(ImType=['PhantomRGB'],size=(200,200)),
+        rgb_normalize(ImType=['PhantomRGB']),
+        #hue_transform(),
+        multi_image_resize(ImType=['PhantomRGB'],size=(400,400)),
         pos_fly_transform(),
         concatenate_non_uniform_transform(),
         multi_ToTensor(ImType=['PhantomRGB']),
@@ -43,12 +43,12 @@ def main():
     model=b_encodeco(
                 image_dim=int(200),
                  image_channels=1,
-                 non_uniform_dim=32,
+                 non_uniform_dim=30,
                  repr_sizes=[2,4,8,16],
                  pre_layer_sizes=[300,200],
-                 layer_sizes=[200,100],
-                 pre_output=500,
-                 latent_space_size=10,
+                 layer_sizes=[100,50],
+                 pre_output=200,
+                 latent_space_size=12,
                  conv_kernel_size=5,
                  activators=[nn.Sigmoid(),nn.LeakyReLU(),nn.LeakyReLU(),nn.LeakyReLU()],
                  conv_pooling=False,
@@ -63,7 +63,7 @@ def main():
     print("data loaded")
 
     #os.path.join("..","Data_prep")
-    T_ID="Meta_VAE_A2_1"
+    T_ID="Meta_VAE_A2_2"
     pth=os.path.join(str(pathlib.Path().absolute()),"results",T_ID)
     print(pth)
 
