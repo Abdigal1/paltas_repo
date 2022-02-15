@@ -144,7 +144,7 @@ def compute_ndvi(rgb_img, nir_img, mask, statistic=True):
         return cv2.bitwise_and(NDVI, NDVI, mask=mask)
     else:
         mndvi = NDVI[mask]
-        return [mndvi.mean(), mndvi.std()]
+        return [np.nanmean(mndvi), np.nanstd(mndvi)]
 
 #if __name__ == '__main__':
 #    a = cv2.imread('..\\Tests\\tela_RGB7.jpg')
