@@ -40,7 +40,7 @@ def get_clothe_masks(img):
     r_mask,_,_ = return_rec(r_mask, small=False)
     return r_mask, g_mask, b_mask
 
-def compute_ndvi(rgb_img, nir_img, mask, statistic=True):
+def registration(rgb_img, nir_img, adjusted):
     ## Registration
     #rgb_ = cv2.resize(rgb_img, (600, 450))
     rgb_ = rgb_img
@@ -68,21 +68,72 @@ def compute_ndvi(rgb_img, nir_img, mask, statistic=True):
     ref_matched_kpts = np.float32([kp1[m[0].queryIdx].pt for m in good_matches])
     sensed_matched_kpts = np.float32([kp2[m[0].trainIdx].pt for m in good_matches])
     
-    H, status = cv2.findHomography(sensed_matched_kpts, ref_matched_kpts, cv2.RANSAC,80.0)
-    nir_img = cv2.warpPerspective(nir_img, H, (rgb_img.shape[1], rgb_img.shape[0]))
+    try:
+        H, status = cv2.findHomography(sensed_matched_kpts, ref_matched_kpts, cv2.RANSAC,80.0)
+        nir_img = cv2.warpPerspective(nir_img, H, (rgb_img.shape[1], rgb_img.shape[0]))
+    except:
+        pass
+    ##Adjustment
+    if adjusted:
+        rgb_img = rgb_img.astype(np.float64)
+        nir_img = nir_img.astype(np.float64)
+        RR = np.array([[1.377, -0.182, -0.061],
+            [-0.199, 1.420, -0.329],
+            [-0.034, -0.110, 1.150]])
+        RN = np.array([[-0.956, 0., 1.],
+            [2.426, 0., -0.341],
+            [0., 1., 0.]])
+        
+        rgb_img = np.matmul(rgb_img, RR.T)
+        nir_img = np.matmul(nir_img, RN.T)
+    return rgb_img, nir_img
+
+
+def compute_ndvi(rgb_img, nir_img, mask, statistic=True):
+    ## Registration
+    #rgb_ = cv2.resize(rgb_img, (600, 450))
+    rgb_ = rgb_img
+    #if rgb_.dtype != np.uint8:
+    #    rgb_ = rgb_.astype(np.uint8)
+    rgb_ = cv2.cvtColor(rgb_, cv2.COLOR_BGR2GRAY) 
+    nir_ = nir_img
+    #nir_ = cv2.resize(nir_img, (600, 450))
+    #if nir_.dtype != np.uint8:
+    #    nir_ = nir_.astype(np.uint8)
+    nir_ = nir_[:, :, 0]
+    
+    akaze = cv2.xfeatures2d.SIFT_create()
+    kp1, des1 = akaze.detectAndCompute(rgb_, None)
+    kp2, des2 = akaze.detectAndCompute(nir_, None)
+    
+    bf = cv2.BFMatcher()
+    matches = bf.knnMatch(des1, des2, k = 2)
+    
+    good_matches = []
+    for m,n in matches:
+        if m.distance < 0.75*n.distance:
+            good_matches.append([m])
+    #print(ref_matched_kpts, sensed_matched_kpts)
+    ref_matched_kpts = np.float32([kp1[m[0].queryIdx].pt for m in good_matches])
+    sensed_matched_kpts = np.float32([kp2[m[0].trainIdx].pt for m in good_matches])
+    try:
+        H, status = cv2.findHomography(sensed_matched_kpts, ref_matched_kpts, cv2.RANSAC,80.0)
+        nir_img = cv2.warpPerspective(nir_img, H, (rgb_img.shape[1], rgb_img.shape[0]))
+    except:
+        pass
     
     ##Adjustment
     rgb_img = rgb_img.astype(np.float64)
     nir_img = nir_img.astype(np.float64)
     RR = np.array([[1.377, -0.182, -0.061],
-          [-0.199, 1.420, -0.29],
+          [-0.199, 1.420, -0.329],
           [-0.034, -0.110, 1.150]])
     RN = np.array([[-0.956, 0., 1.],
           [2.426, 0., -0.341],
           [0., 1., 0.]])
     
-    rgb_img = np.matmul(rgb_img, RR)
-    nir_img = np.matmul(nir_img, RN)
+    rgb_img = np.matmul(rgb_img, RR.T)
+    nir_img = np.matmul(nir_img, RN.T)
     NDVI = (2.7*nir_img[:, :, 1]-rgb_img[:, :, 2])/(2.7*nir_img[:, :, 1]+rgb_img[:, :, 2])
     mask = mask.astype(bool)
     ##Mean STD calculation
