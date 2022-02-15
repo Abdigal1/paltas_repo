@@ -83,7 +83,7 @@ class b_encodeco(nn.Module):
                                         batch_norm=self.conv_batch_norm,
                                         stride=stride
                                         )).to('cuda:3')
-        self.lact=(nn.Sigmoid()).to('cuda:3')
+        #self.lact=(nn.Sigmoid()).to('cuda:3')
         
     def compute_odim(self,idim,repr_sizes):
         if isinstance(self.conv_pooling,bool):

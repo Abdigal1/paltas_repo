@@ -43,7 +43,7 @@ def main():
     model=b_encodeco(
                 image_dim=int(200),
                  image_channels=1,
-                 non_uniform_dim=32,
+                 non_uniform_dim=30,
                  repr_sizes=[2,4,8,16],
                  pre_layer_sizes=[300,200],
                  layer_sizes=[200,100],
