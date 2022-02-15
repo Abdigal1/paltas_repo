@@ -56,7 +56,9 @@ def main():
 
     model=b_encodeco(image_dim=int(512),
                  image_channels=3,
-                 non_uniform_input=30
+                 non_uniform_input=30,
+                 pre_layer_sizes=[300,200],
+                 pre_output=500,
                  repr_sizes=[12,48,192],
                  layer_sizes=[80,50],
                  latent_space_size=50,

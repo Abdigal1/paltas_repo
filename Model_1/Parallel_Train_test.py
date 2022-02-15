@@ -67,6 +67,7 @@ def main():
         data_dir=pth,
         in_device=device,
         num_workers=10,
+        args=['SenteraNDVI']
     )
 
     tr.K_fold_train()
