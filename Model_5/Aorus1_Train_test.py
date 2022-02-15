@@ -1,3 +1,4 @@
+from random import uniform
 import sys
 import os
 
@@ -8,14 +9,14 @@ from Train_utils.TT_class import trainer
 
 import pathlib
 import fire as fire
-from Net.VAE_v2 import b_encodeco
+from Net.VAE_meta import b_encodeco
 from torchvision import transforms
 from Custom_dataloader import *
 from Transforms import phantom_segmentation
 from Transforms import multi_image_resize
 from Transforms import multi_ToTensor
 from Transforms import output_transform
-from Transforms import rgb_normalize
+from Transforms import *
 
 from torch import nn
 
@@ -24,11 +25,13 @@ def main():
     DB="/home/liiarpi-01/proyectopaltas/Local_data_base/Data_Base_v2"
     #DB="//MYCLOUDPR4100/Paltas_DataBase/Data_Base_v2"
     d_tt=transforms.Compose([
-        phantom_segmentation(False),
-        rgb_normalize(ImType=['PhantomRGB']),
-        multi_image_resize(ImType=['PhantomRGB'],size=(200,200)),
+        phantom_segmentation(False,True),
+        multi_image_resize(ImType=['PhantomRGB'],size=(256,256)),
+        pos_fly_transform(),
+        concatenate_non_uniform_transform(),
+        hue_transform(),
         multi_ToTensor(ImType=['PhantomRGB']),
-        output_transform()
+        only_tensor_transform()
         ])
 
 #TO DEBUG
@@ -48,17 +51,21 @@ def main():
     device='cuda'
 
     #os.path.join("..","Data_prep")
-    T_ID="VAE_v2_5"
+    T_ID="Meta_VAE_A1_2"
     pth=os.path.join(str(pathlib.Path().absolute()),"results",T_ID)
     print(pth)
 
-    model=b_encodeco(image_dim=int(200),
-                 image_channels=3,
-                 repr_sizes=[10,20,40],
-                 layer_sizes=[],
-                 latent_space_size=50,
-                 conv_kernel_size=15,
-                 activators=[nn.Tanh(),nn.ReLU(),nn.ReLU()],
+    model=b_encodeco(
+                image_dim=int(256),
+                 image_channels=1,
+                 non_uniform_dim=30,
+                 repr_sizes=[2,4,8,16],
+                 pre_layer_sizes=[300,200],
+                 layer_sizes=[200,100],
+                 pre_output=500,
+                 latent_space_size=12,
+                 conv_kernel_size=5,
+                 activators=[nn.Sigmoid(),nn.LeakyReLU(),nn.LeakyReLU(),nn.LeakyReLU()],
                  conv_pooling=False,
                  conv_batch_norm=True,
                  NN_batch_norm=True,
@@ -89,6 +96,8 @@ def main():
         data_dir=pth,
         in_device=None,
         num_workers=6,
+        args=["PhantomRGB","Non_uniform_input"],
+        uniform=False
     )
 
     tr.K_fold_train()

@@ -15,7 +15,7 @@ from Transforms import phantom_segmentation
 from Transforms import multi_image_resize
 from Transforms import multi_ToTensor
 from Transforms import output_transform
-from Transforms import rgb_normalize
+from Transforms import *
 
 from torch import nn
 
@@ -24,11 +24,11 @@ def main():
     DB="/home/lambda/paltas/Local_data_base/Data_Base_v2"
     #DB="//MYCLOUDPR4100/Paltas_DataBase/Data_Base_v2"
     d_tt=transforms.Compose([
-        phantom_segmentation(False),
-        rgb_normalize(ImType=['PhantomRGB']),
-        multi_image_resize(ImType=['PhantomRGB'],size=(200,200)),
+        phantom_segmentation(False,True),
+        multi_image_resize(ImType=['PhantomRGB'],size=(512,512)),
+        hue_transform(),
         multi_ToTensor(ImType=['PhantomRGB']),
-        output_transform()
+        only_tensor_transform()
         ])
 
     datab=Dataset_direct(root_dir=DB,ImType=['PhantomRGB'],Intersec=False,transform=d_tt)
@@ -37,17 +37,17 @@ def main():
     
 
     #os.path.join("..","Data_prep")
-    T_ID="VAE_8"
+    T_ID="VAE_9"
     pth=os.path.join(str(pathlib.Path().absolute()),"results",T_ID)
     print(pth)
 
-    model=b_encodeco(image_dim=int(200),
-                 image_channels=3,
-                 repr_sizes=[12,48,192],
-                 layer_sizes=[100,50],
+    model=b_encodeco(image_dim=int(512),
+                 image_channels=1,
+                 repr_sizes=[3,6,12,48,192],
+                 layer_sizes=[200,100,50],
                  latent_space_size=50,
                  conv_kernel_size=15,
-                 activators=[nn.Sigmoid(),nn.LeakyReLU(),nn.LeakyReLU()],
+                 activators=[nn.Sigmoid(),nn.LeakyReLU(),nn.LeakyReLU(),nn.LeakyReLU(),nn.LeakyReLU()],
                  conv_pooling=False,
                  conv_batch_norm=True,
                  NN_batch_norm=True,

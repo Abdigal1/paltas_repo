@@ -41,10 +41,10 @@ def main():
         ])
 
     model=b_encodeco(
-                image_dim=int(400),
-                 image_channels=3,
+                image_dim=int(200),
+                 image_channels=1,
                  non_uniform_dim=30,
-                 repr_sizes=[4,8,16],
+                 repr_sizes=[2,4,8,16],
                  pre_layer_sizes=[300,200],
                  layer_sizes=[100,50],
                  pre_output=200,

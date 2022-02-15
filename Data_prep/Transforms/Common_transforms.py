@@ -205,6 +205,7 @@ class pos_fly_transform(object):
             Lat=Lat-int(Lat)
             Lon=Lon-int(Lon)
             Alt=Alt-int(Alt)
+        #pos=np.array([Lat,Lon,Alt])
         pos=np.array([Alt])
         date_ohe=np.zeros(29)
         date_ohe[self.fly_map[sample['Date']]]=1

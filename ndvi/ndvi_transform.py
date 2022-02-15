@@ -2,6 +2,8 @@ from os import stat
 from utils import *
 import matplotlib.pyplot as plt
 
+
+
 class ndvi_desc():
     """Compute NDVI from RGB and NIR image 
     
@@ -14,8 +16,9 @@ class ndvi_desc():
 
     """
 
-    def __init__(self, statistic_ = False):
+    def __init__(self, statistic_ = False, normalized=True):
         self.statistic = statistic_
+        self.normalized = normalized
 
     def __call__(self, sample):
         rgb, nir, mask, landmarks = sample['SenteraRGB'],\
@@ -27,6 +30,11 @@ class ndvi_desc():
             return{'SenteraNDVI': {'mean': mean, 'std': std}, 'landmarks': landmarks}
         else:
             ndvi = compute_ndvi(rgb,nir, mask, statistic=False)
+            if self.normalized:
+                ndvi = (ndvi+1.0)/2.0
+                ndvi[(ndvi>1)|(ndvi<0)] = 0
+                np.nan_to_num(ndvi, copy=False, posinf=1.0, neginf=0.0)
+                
             return{'SenteraNDVI': ndvi, 'landmarks': landmarks}
             
 
