@@ -61,7 +61,7 @@ def main():
         dataset=datab,
         epochs=30,
         folds=2,
-        batch_size=8,
+        batch_size=12,
         use_cuda=True,
         loss_list=['KLD','reconstruction',"total_loss"],
         data_dir=pth,
