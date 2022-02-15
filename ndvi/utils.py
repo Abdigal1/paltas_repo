@@ -43,13 +43,13 @@ def get_clothe_masks(img):
 def compute_ndvi(rgb_img, nir_img, mask, statistic=True):
     ## Registration
     rgb_ = cv2.resize(rgb_img, (600, 450))
-    if rgb_.dtype != np.uint8:
-        rgb_ = rgb_.astype(np.uint8)
+    #if rgb_.dtype != np.uint8:
+    #    rgb_ = rgb_.astype(np.uint8)
     rgb_ = cv2.cvtColor(rgb_, cv2.COLOR_BGR2GRAY) 
     
     nir_ = cv2.resize(nir_img, (600, 450))
-    if nir_.dtype != np.uint8:
-        nir_ = nir_.astype(np.uint8)
+    #if nir_.dtype != np.uint8:
+    #    nir_ = nir_.astype(np.uint8)
     nir_ = nir_[:, :, 0]
     
     akaze = cv2.xfeatures2d.SIFT_create()
@@ -63,7 +63,7 @@ def compute_ndvi(rgb_img, nir_img, mask, statistic=True):
     for m,n in matches:
         if m.distance < 0.75*n.distance:
             good_matches.append([m])
-    
+    #print(ref_matched_kpts, sensed_matched_kpts)
     ref_matched_kpts = np.float32([kp1[m[0].queryIdx].pt for m in good_matches])
     sensed_matched_kpts = np.float32([kp2[m[0].trainIdx].pt for m in good_matches])
     
@@ -83,15 +83,15 @@ def compute_ndvi(rgb_img, nir_img, mask, statistic=True):
     rgb_img = np.matmul(rgb_img, RR)
     nir_img = np.matmul(nir_img, RN)
     NDVI = (2.7*nir_img[:, :, 1]-rgb_img[:, :, 2])/(2.7*nir_img[:, :, 1]+rgb_img[:, :, 2])
-    
+    mask = mask.astype(bool)
     ##Mean STD calculation
     #plt.imshow(NDVI)
-    mndvi = NDVI[mask]
+    
     if not(statistic):
-        imout = np.zeros_like(NDVI)
-        imout[mask] = NDVI[mask]
-        return imout
+        mask = mask.astype(np.uint8)
+        return cv2.bitwise_and(NDVI, NDVI, mask=mask)
     else:
+        mndvi = NDVI[mask]
         return [mndvi.mean(), mndvi.std()]
 
 #if __name__ == '__main__':
