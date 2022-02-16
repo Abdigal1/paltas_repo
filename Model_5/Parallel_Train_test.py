@@ -68,6 +68,7 @@ def main():
                  conv_batch_norm=True,
                  NN_batch_norm=True,
                  stride=2,
+                Multi_GPU=True,
                 in_device=device)
     
 
