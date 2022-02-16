@@ -87,7 +87,6 @@ class b_encodeco(nn.Module):  # add 3dconv flag --------------------------------
                                         batch_norm=self.conv_batch_norm,
                                         stride=stride
                                         )
-        #self.lact=nn.Sigmoid()
         
     def compute_odim(self,idim,repr_sizes,stride):
         if isinstance(self.conv_pooling,bool):
