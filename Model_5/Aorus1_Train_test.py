@@ -34,18 +34,6 @@ def main():
         only_tensor_transform()
         ])
 
-#TO DEBUG
-    #d_tt=transforms.Compose([
-    #    phantom_segmentation(False,non_uniform_input=True),
-    #    rgb_normalize(ImType=['PhantomRGB']),
-    #    multi_image_resize(ImType=['PhantomRGB'],size=(20,20)),
-    #    pos_fly_transform(),
-    #    concatenate_non_uniform_transform(),
-    #    multi_ToTensor(ImType=['PhantomRGB']),
-    #    only_tensor_transform(),
-    #    #output_transform()
-    #    ])
-
     datab=Dataset_direct(root_dir=DB,ImType=['PhantomRGB'],Intersec=False,transform=d_tt)
     print("data loaded")
     device='cuda'
@@ -73,17 +61,6 @@ def main():
                 device=device)
     model.to(device)
     print("model loaded")
-
-    #K_fold_train(model=model,
-    #            dataset=datab,
-    #            epochs=30,
-    #            batch_size=2,
-    #            use_cuda=True,
-    #            folds=2,
-    #            data_train_dir=pth,
-    #            n_workers=6,
-    #            loss_fn=MSEloss_fn_b
-    # )
 
     tr=trainer(
         model=model,
