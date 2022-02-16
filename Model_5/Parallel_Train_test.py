@@ -24,12 +24,13 @@ def main():
     DB="/home/lambda/paltas/Local_data_base/Data_Base_v2"
     #DB="//MYCLOUDPR4100/Paltas_DataBase/Data_Base_v2"
     d_tt=transforms.Compose([
-        phantom_segmentation(False),
+        phantom_segmentation(False,True),
         rgb_normalize(ImType=['PhantomRGB']),
-        multi_image_resize(ImType=['PhantomRGB'],size=(200,200)),
+        multi_image_resize(ImType=['PhantomRGB'],size=(512,512)),
         multi_ToTensor(ImType=['PhantomRGB']),
         output_transform()
         ])
+
 
 #TO DEBUG
     #d_tt=transforms.Compose([
@@ -53,17 +54,21 @@ def main():
     pth=os.path.join(str(pathlib.Path().absolute()),"results",T_ID)
     print(pth)
 
-    model=b_encodeco(image_dim=int(200),
+    model=b_encodeco(image_dim=int(512),
                  image_channels=3,
+                 non_uniform_input=30,
+                 pre_layer_sizes=[300,200],
+                 pre_output=500,
                  repr_sizes=[12,48,192],
                  layer_sizes=[80,50],
                  latent_space_size=50,
                  conv_kernel_size=25,
-                 activators=[nn.Tanh(),nn.ReLU(),nn.ReLU()],
+                 activators=[nn.Sigmoid(),nn.ReLU(),nn.ReLU()],
                  conv_pooling=False,
                  conv_batch_norm=True,
                  NN_batch_norm=True,
                  stride=2,
+                Multi_GPU=True,
                 in_device=device)
     
 
@@ -80,6 +85,8 @@ def main():
         data_dir=pth,
         in_device=device,
         num_workers=10,
+        args=["PhantomRGB","Non_uniform_input"],
+        uniform=False
     )
 
     tr.K_fold_train()

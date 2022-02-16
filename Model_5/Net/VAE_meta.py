@@ -28,10 +28,14 @@ class b_encodeco(nn.Module):
                  conv_batch_norm=True,
                  NN_batch_norm=True,
                  stride=1,
-                 device="cpu"
+                 device="cpu",
+                 Multi_GPU=False,
+                 in_device="cpu"
                 ):
         super(b_encodeco,self).__init__()
 
+        self.parallelized=Multi_GPU
+        self.in_device=in_device
         self.losses={}
 
         self.conv_pooling=conv_pooling
@@ -102,8 +106,16 @@ class b_encodeco(nn.Module):
                                         batch_norm=self.conv_batch_norm,
                                         stride=stride
                                         )
-        #self.lact=nn.Sigmoid()
-        
+        if self.parallelized:
+            self.encoder_conv.to('cuda:0')
+            self.pre_encoder.to('cuda:1')
+            self.encoder_NN_mu.to('cuda:1')
+            self.encoder_NN_sig.to('cuda:1')
+            self.flatten.to('cpu')
+            self.decoder_NN.to('cuda:2')
+            self.post_encoder.to('cuda:2')
+            self.decoder_conv.to('cuda:3')
+
     def compute_odim(self,idim,repr_sizes,stride):
         if isinstance(self.conv_pooling,bool):
             pool_l=[self.conv_pooling for i in range(len(repr_sizes))]
@@ -122,24 +134,26 @@ class b_encodeco(nn.Module):
         std=logvar.mul(0.5).exp_()
         
         esp=torch.randn(*mu.size()).to(self.device)
+        if self.parallelized:
+            esp=esp.to('cuda:1')
         z=mu+std*esp
         return z
         
     
     def forward(self,x):
-        x=self.encoder_conv(x)
-        x=self.flatten(x)
+        x=self.encoder_conv((x.to(self.in_device) if self.parallelized else x))
+        x=self.flatten((x.to('cpu') if self.parallelized else x))
         #FCNN
-        mu=self.encoder_NN_mu(x)
-        sig=self.encoder_NN_sig(x)
+        mu=self.encoder_NN_mu((x.to('cuda:1') if self.parallelized else x))
+        sig=self.encoder_NN_sig((x.to('cuda:1') if self.parallelized else x))
         
         z=self.reparametrization(mu,sig)
-        z=self.decoder_NN(z)
-        z=self.flatten(z)
-        z=self.decoder_conv(z)
+        z=self.decoder_NN((z.to('cuda:2') if self.parallelized else z))
+        z=self.flatten((z.to('cpu') if self.parallelized else z))
+        z=self.decoder_conv((z.to('cuda:3') if self.parallelized else z))
         #z=self.lact(z)
         
-        return z,mu,sig
+        return z,mu.to('cuda:0'),sig.to('cuda:0')
 
     def forward_non_uniform(self,x1,x2):
         x1=self.encoder_conv(x1)
