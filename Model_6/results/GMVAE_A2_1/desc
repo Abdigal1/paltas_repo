@@ -1,0 +1,26 @@
+    d_tt=transforms.Compose([
+        pos_fly_transform(ImType=["SenteraRGB"]),
+        concatenate_non_uniform_transform(),
+        ndvi_desc(),
+        multi_image_resize(ImType=['SenteraNDVI'],size=(512,512)),
+        multi_ToTensor(ImType=['SenteraNDVI']),
+        only_tensor_transform()
+        ])
+
+    model=GMVAE(image_dim=int(512),
+        image_channels=1,
+        non_uniform_dim=33,
+        repr_sizes=[2,4,8,16,32,64],
+        pre_layer_sizes=[300,200],
+        layer_sizes=[100,50],
+        pre_output=100,
+        w_latent_space_size=8,
+        z_latent_space_size=8,
+        y_latent_space_size=12,
+        conv_kernel_size=7,
+        conv_pooling=False,
+        activators=[nn.Sigmoid(),nn.LeakyReLU(),nn.LeakyReLU(),nn.LeakyReLU(),nn.LeakyReLU(),nn.LeakyReLU()],
+        conv_batch_norm=True,
+        NN_batch_norm=True,
+        stride=2,
+        device="cpu")

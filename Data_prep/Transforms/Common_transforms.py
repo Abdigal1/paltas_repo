@@ -159,55 +159,48 @@ class pos_fly_transform(object):
 
     """
 
-    def __init__(self,ImType=["PhantomRGB"],
-                        fly_map={
-                                '11_junio_1':       0,
-                                '12_mayo_1':        1,
-                                '12_mayo_2':        2,
-                                '13_agosto_1':      3,        
-                                '14_abril_1':       4,
-                                '14_abril_2':       5,
-                                '14_julio_1':       6,
-                                '15_setiembre_1':   7,       
-                                '16_junio_1':       8,
-                                '16_junio_2':       9,
-                                '19_agosto_1':      10,
-                                '19_mayo_1':        11,       
-                                '19_mayo_2':        12,
-                                '23_julio_1':       13,
-                                '23_julio_2':       14,
-                                '23_junio_1':       15,       
-                                '23_junio_2':       16,
-                                '24_setiembre_1':   17,
-                                '26_mayo_1':        18,
-                                '26_mayo_2':        19,       
-                                '28_abril_1':       20,
-                                '28_abril_2':       21,
-                                '29_marzo_1':       22,
-                                '29_marzo_2':       23,       
-                                '2_julio_1':        24,
-                                '2_junio_1':        25,
-                                '5_agosto_1':       26,
-                                '7_mayo_1':         27,
-                                '9_julio_1':        28
-    },only_decimals=True
-    ):
+    def __init__(self,ImType=["PhantomRGB"],only_decimals=True):
         self.ImType=ImType
-        self.fly_map=fly_map
         self.only_decimals=only_decimals
+        if self.ImType[0]=='PhantomRGB':
+            self.fly_map={'11_junio_1':    0,'12_mayo_1':   1,'12_mayo_2':   2,
+                            '13_agosto_1': 3,'14_abril_1':  4,'14_abril_2':  5,
+                            '14_julio_1':  6,'15_setiembre_1': 7,'16_junio_1':  8,
+                            '16_junio_2':  9,'19_agosto_1': 10,'19_mayo_1':   11,       
+                            '19_mayo_2':   12,'23_julio_1':  13,'23_julio_2':  14,
+                            '23_junio_1':  15,'23_junio_2':  16,'24_setiembre_1':17,
+                            '26_mayo_1':   18,'26_mayo_2':   19,'28_abril_1':  20,
+                            '28_abril_2':  21,'29_marzo_1':  22,'29_marzo_2':  23,       
+                            '2_julio_1':   24,'2_junio_1':   25,'5_agosto_1':  26,
+                            '7_mayo_1':    27,'9_julio_1':   28}
+        elif self.ImType[0]=='SenteraRGB':
+            self.fly_map={'11_junio_1':    0,'12_mayo_1':   1,'12_mayo_2':   2,
+                            '13_agosto_1': 3,'13_agosto_2': 4,'14_abril_1':  5,'14_abril_2':  6,
+                            '14_julio_1':  7,'15_setiembre_1': 8,'16_junio_1':  9,
+                            '16_junio_2':  10,'19_agosto_1': 11,'19_mayo_1':   12,       
+                            '19_mayo_2':   13,'23_julio_1':  14,'23_julio_2':  15,
+                            '23_junio_1':  16,'23_junio_2':  17,'24_setiembre_1':18,
+                            '26_mayo_1':   19,'26_mayo_2':   20,'28_abril_1':  21,
+                            '28_abril_2':  22,'29_marzo_1':  23,'29_marzo_2':  24,
+                            '2_julio_1':   25,'2_junio_1':   26,'5_agosto_1':  27,
+                            '5_agosto_2':  28,'7_mayo_1':    29,'9_julio_1':   30,
+                            '9_julio_2':31}
 
     def __call__(self, sample):
         #TODO: For Imtype
-        Lat=float(sample['PhantomRGB_metadata']['GPSInfo']["GPSLatitude"][2])
-        Lon=float(sample['PhantomRGB_metadata']['GPSInfo']["GPSLongitude"][2])
-        Alt=float(sample['PhantomRGB_metadata']['GPSInfo']["GPSAltitude"])
+        Lat=float(sample[self.ImType[0]+'_metadata']['GPSInfo']["GPSLatitude"][2])
+        Lon=float(sample[self.ImType[0]+'_metadata']['GPSInfo']["GPSLongitude"][2])
+        Alt=float(sample[self.ImType[0]+'_metadata']['GPSInfo']["GPSAltitude"])
         if self.only_decimals:
             Lat=Lat-int(Lat)
             Lon=Lon-int(Lon)
             Alt=Alt-int(Alt)
         #pos=np.array([Lat,Lon,Alt])
         pos=np.array([Alt])
-        date_ohe=np.zeros(29)
+        if self.ImType[0]=='PhantomRGB':
+            date_ohe=np.zeros(29)
+        elif self.ImType[0]=='SenteraRGB':
+            date_ohe=np.zeros(32)
         date_ohe[self.fly_map[sample['Date']]]=1
         sample["Encoded_date"]=date_ohe
         sample["GPSposition"]=pos
