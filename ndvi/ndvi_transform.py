@@ -30,12 +30,14 @@ class ndvi_desc():
             return{'SenteraNDVI': {'mean': mean, 'std': std}, 'landmarks': landmarks}
         else:
             ndvi = compute_ndvi(rgb,nir, mask, statistic=False)
+            sample['SenteraNDVI']=ndvi
             if self.normalized:
                 ndvi = (ndvi+1.0)/2.0
                 ndvi[(ndvi>1)|(ndvi<0)] = 0
                 np.nan_to_num(ndvi, copy=False, posinf=1.0, neginf=0.0)
+                sample['SenteraNDVI']=ndvi
                 
-            return{'SenteraNDVI': ndvi, 'landmarks': landmarks}
+            return sample
             
 
 
