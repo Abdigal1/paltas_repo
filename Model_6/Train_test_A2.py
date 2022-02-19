@@ -71,7 +71,7 @@ def main():
         loss_list=['conditional_prior','w_prior','y_prior','reconstruction',"total_loss"],
         data_dir=pth,
         in_device=None,
-        num_workers=6,
+        num_workers=3,
         args=["SenteraNDVI","Non_uniform_input"],
         uniform=False
 
