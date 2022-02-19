@@ -234,10 +234,13 @@ class GMVAE(nn.Module):
         x_mean=self.decoder_conv(x_mean)
         return x_mean
     
-    def ELBO(self,x_i):
+    def ELBO(self,x1,x2):
         #CNN encoding
-        x=self.encoder_conv((x_i.to(self.in_device if self.parallelized else x_i)))
-        x=self.flatten((x.to('cpu') if self.parallelized else x))
+        x1_=self.encoder_conv((x1.to(self.in_device if self.parallelized else x1)))
+        x1_=self.flatten((x1_.to('cpu') if self.parallelized else x1_))
+
+        x=torch.concat((x1_,x2.squeeze(1).squeeze(1)),dim=1)
+        x=self.pre_encoder((x.to('cuda:1') if self.parallelized else x))
 
         #inference
         z_x,z_x_mean,z_x_logvar=self.Q.z_infer((x.to('cuda:1') if self.parallelized else x))
@@ -250,13 +253,19 @@ class GMVAE(nn.Module):
         z_wy,z_wy_mean,z_wy_logvar=self.P.z_gener((w_x.to('cuda:2') if self.parallelized else w_x)) #[batch,K,z_dim]
         x_mean=self.P.x_gener((z_x.to('cuda:2') if self.parallelized else z_x))
 
+        x_mean12=self.post_encoder((x_mean.to('cuda:2') if self.parallelized else x_mean))
+        x1_mean,x2_mean=torch.split(x_mean12,[self.NN_input,self.non_uniform_input_dim],dim=1)
+
         #CNN decoding
-        x_mean=self.flatten((x_mean.to('cpu') if self.parallelized else x_mean))
-        x_mean=self.decoder_conv((x_mean.to('cuda:3') if self.parallelized else x_mean))
+        x1_mean=self.flatten((x1_mean.to('cpu') if self.parallelized else x1_mean))
+        x1_mean=self.decoder_conv((x1_mean.to('cuda:3') if self.parallelized else x1_mean))
 
         reconstruction=self.reconstruction_loss(
-            (x_mean.to("cuda:0") if self.parallelized else x_mean),
-            (x_i.to("cuda:0") if self.parallelized else x_i)
+            (x1_mean.to("cuda:0") if self.parallelized else x1_mean),
+            (x1.to("cuda:0") if self.parallelized else x1)
+            )+self.reconstruction_loss(
+            (x2_mean.to("cuda:0") if self.parallelized else x2_mean),
+            (x2.squeeze(1).squeeze(1).to("cuda:0") if self.parallelized else x2.squeeze(1).squeeze(1))
             )
         conditional_prior=self.conditional_prior(
             (z_x.to("cuda:0") if self.parallelized else z_x),
