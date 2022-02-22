@@ -24,9 +24,10 @@ def main():
     DB="/home/lambda/paltas/Local_data_base/Data_Base_v2"
     #DB="//MYCLOUDPR4100/Paltas_DataBase/Data_Base_v2"
     d_tt=transforms.Compose([
-        ndvi_desc(),
-        multi_image_resize(ImType=['SenteraNDVI'],size=(512,512)),
-        multi_ToTensor(ImType=['SenteraNDVI']),
+        trans_registration(),
+        multi_image_resize(ImType=['SenteraRGB','SenteraNIR'],size=(512,512)),
+        stack_multiespectral(),
+        multi_ToTensor(ImType=['SenteraRGBNIR']),
         only_tensor_transform()
         ])
 
@@ -36,13 +37,13 @@ def main():
     
 
     #os.path.join("..","Data_prep")
-    T_ID="VAE_10"
+    T_ID="VAE_11"
     pth=os.path.join(str(pathlib.Path().absolute()),"results",T_ID)
     print(pth)
 
     model=b_encodeco(image_dim=int(512),
-                 image_channels=1,
-                 repr_sizes=[3,6,12,48,192],
+                 image_channels=5,
+                 repr_sizes=[8,16,32,64,128],
                  layer_sizes=[200,100,50],
                  latent_space_size=50,
                  conv_kernel_size=15,
@@ -67,7 +68,7 @@ def main():
         data_dir=pth,
         in_device=device,
         num_workers=10,
-        args=['SenteraNDVI']
+        args=['SenteraRGBNIR']
     )
 
     tr.K_fold_train()

@@ -15,7 +15,7 @@ from Transforms import phantom_segmentation
 from Transforms import multi_image_resize
 from Transforms import multi_ToTensor
 from Transforms import output_transform
-from Transforms import rgb_normalize
+from Transforms import *
 
 from torch import nn
 
@@ -24,32 +24,31 @@ def main():
     #DB="//MYCLOUDPR4100/Paltas_DataBase/Data_Base_v2"
     DB="/home/liiarpi-01/proyectopaltas/Local_data_base/Data_Base_v2"
     d_tt=transforms.Compose([
-        phantom_segmentation(False),
-        rgb_normalize(ImType=['PhantomRGB']),
-        multi_image_resize(ImType=['PhantomRGB'],size=(100,100)),
-        multi_ToTensor(ImType=['PhantomRGB']),
-        output_transform()
+        ndvi_desc(),
+        multi_image_resize(ImType=['SenteraNDVI'],size=(512,512)),
+        multi_ToTensor(ImType=['SenteraNDVI']),
+        only_tensor_transform()
         ])
 
-    datab=Dataset_direct(root_dir=DB,ImType=['PhantomRGB'],Intersec=False,transform=d_tt)
+    datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB','SenteraNIR','SenteraMASK'],Intersec=False,transform=d_tt)
     print("data loaded")
     device='cuda'
 
     #os.path.join("..","Data_prep")
-    T_ID="GMVAE_A1_2"
+    T_ID="GMVAE_A1_3"
     pth=os.path.join(str(pathlib.Path().absolute()),"results",T_ID)
     print(pth)
 
-    model=GMVAE(image_dim=int(100),
-        image_channels=3,
-        repr_sizes=[6,12,24],
-        layer_sizes=[10],
-        w_latent_space_size=5,
-        z_latent_space_size=5,
-        y_latent_space_size=12,
+    model=GMVAE(image_dim=int(512),
+        image_channels=1,
+        repr_sizes=[3,6,12,24,48],
+        layer_sizes=[200,100,50],
+        w_latent_space_size=10,
+        z_latent_space_size=10,
+        y_latent_space_size=5,
         conv_kernel_size=7,
         conv_pooling=False,
-        activators=[nn.Tanh(),nn.LeakyReLU(),nn.LeakyReLU()],
+        activators=[nn.Sigmoid(),nn.LeakyReLU(),nn.LeakyReLU(),nn.LeakyReLU(),nn.LeakyReLU()],
         conv_batch_norm=True,
         NN_batch_norm=True,
         stride=2,
@@ -68,6 +67,7 @@ def main():
         data_dir=pth,
         in_device=None,
         num_workers=6,
+        args=['SenteraNDVI']
     )
 
     tr.K_fold_train()
