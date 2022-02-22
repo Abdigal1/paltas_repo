@@ -3,6 +3,7 @@ import os
 
 sys.path.append(os.path.join("..","Data_prep"))
 sys.path.append(os.path.join("..","DL_utils"))
+os.listdir(os.path.join("..","DL_utils"))
 
 from Train_utils.TT_class import trainer
 
@@ -71,7 +72,7 @@ def main():
         loss_list=['conditional_prior','w_prior','y_prior','reconstruction',"total_loss"],
         data_dir=pth,
         in_device=None,
-        num_workers=3,
+        num_workers=6,
         args=["SenteraNDVI","Non_uniform_input"],
         uniform=False
 
