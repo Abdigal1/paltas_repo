@@ -4,6 +4,7 @@ import os
 sys.path.append(os.path.join("..","ndvi"))
 
 from ndvi_transform import ndvi_desc
+from reg_transform import trans_registration
 
 from skimage.transform import resize
 from skimage.color import rgb2hsv
@@ -31,26 +32,7 @@ class hue_transform(object):
             sample[Type]=rgb2hsv(sample[Type])[:,:,0]
         return sample
 
-class stack_multiespectral(object):
-    """Crop randomly the image in a sample.
 
-    Args:
-        regular (bool): regular o non regular segmentation mask
-    output:
-
-    """
-
-    def __init__(self, ImType=["SenteraRGB",'SenteraNIR']):
-        assert isinstance(ImType, list)
-        #if self.ImType!=["SenteraRGB",'SenteraNIR']:
-        self.ImType=ImType
-
-    def __call__(self, sample):
-        sample['SenteraRGBNIR']=np.concatenate((
-            sample["SenteraRGB"],
-            sample['SenteraNIR'][:,:,np.array([0,2])]
-        ),axis=2)
-        return sample
 
 
 class rgb_normalize(object):
@@ -95,6 +77,27 @@ class multi_image_resize(object):
             sample[Type]=resize(sample[Type],self.size)
 
 
+        return sample
+
+class stack_multiespectral(object):
+    """Crop randomly the image in a sample.
+
+    Args:
+        regular (bool): regular o non regular segmentation mask
+    output:
+
+    """
+
+    def __init__(self, ImType=["SenteraRGB",'SenteraNIR']):
+        assert isinstance(ImType, list)
+        #if self.ImType!=["SenteraRGB",'SenteraNIR']:
+        self.ImType=ImType
+
+    def __call__(self, sample):
+        sample['SenteraRGBNIR']=np.concatenate((
+            sample["SenteraRGB"],
+            sample['SenteraNIR'][:,:,np.array([0,2])]
+        ),axis=2)
         return sample
 
 class multi_ToTensor(object):
