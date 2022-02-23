@@ -238,4 +238,13 @@ class only_tensor_transform(object):
                 sample.pop(k)
         return sample
 
+class select_out_transform(object):
+    def __init__(self,selected=["PhantomRGB"]):
+        self.selected=selected
+    def __call__(self, sample):
+        f_sample={}
+        for k in self.selected:
+            f_sample[k]=sample[k]
+        return f_sample
+
 
