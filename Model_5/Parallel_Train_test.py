@@ -24,11 +24,11 @@ def main():
     DB="/home/lambda/paltas/Local_data_base/Data_Base_v2"
     #DB="//MYCLOUDPR4100/Paltas_DataBase/Data_Base_v2"
     d_tt=transforms.Compose([
-        phantom_segmentation(False,True),
-        rgb_normalize(ImType=['PhantomRGB']),
-        multi_image_resize(ImType=['PhantomRGB'],size=(512,512)),
-        multi_ToTensor(ImType=['PhantomRGB']),
-        output_transform()
+        trans_registration(),
+        multi_image_resize(ImType=['SenteraRGB','SenteraNIR'],size=(512,512)),
+        stack_multiespectral(),
+        multi_ToTensor(ImType=['SenteraRGBNIR']),
+        only_tensor_transform()
         ])
 
 
@@ -44,18 +44,18 @@ def main():
     #    #output_transform()
     #    ])
 
-    datab=Dataset_direct(root_dir=DB,ImType=['PhantomRGB'],Intersec=False,transform=d_tt)
+    datab=Dataset_direct(root_dir=DB,ImType=['SenteraRGB','SenteraNIR','SenteraMASK'],Intersec=False,transform=d_tt)
     print("data loaded")
     device='cuda:0'
     
 
     #os.path.join("..","Data_prep")
-    T_ID="VAE_6"
+    T_ID="metaVAE_L_1"
     pth=os.path.join(str(pathlib.Path().absolute()),"results",T_ID)
     print(pth)
 
     model=b_encodeco(image_dim=int(512),
-                 image_channels=3,
+                 image_channels=5,
                  non_uniform_input=30,
                  pre_layer_sizes=[300,200],
                  pre_output=500,
