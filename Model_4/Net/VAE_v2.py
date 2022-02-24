@@ -30,10 +30,14 @@ class GMVAE(nn.Module):
                  conv_batch_norm=True,
                  NN_batch_norm=True,
                  stride=1,
-                 device="cpu"
+                 device="cpu",
+                 Multi_GPU=False,
+                 in_device="cpu"
                 ):
         super(GMVAE,self).__init__()
 
+        self.parallelized=Multi_GPU
+        self.in_device=in_device
         self.losses={}
 
         self.conv_pooling=conv_pooling
@@ -84,6 +88,13 @@ class GMVAE(nn.Module):
                                         batch_norm=self.conv_batch_norm,
                                         stride=stride
                                         )
+        
+        if self.parallelized:
+            self.encoder_conv.to('cuda:0')
+            self.Q.to('cuda:1')
+            self.flatten.to('cpu')
+            self.P.to('cuda:2')
+            self.decoder_conv.to('cuda:3')
         
     def compute_odim(self,idim,repr_sizes,stride):
         if isinstance(self.conv_pooling,bool):
@@ -203,25 +214,42 @@ class GMVAE(nn.Module):
     
     def ELBO(self,x_i):
         #CNN encoding
-        x=self.encoder_conv(x_i)
-        x=self.flatten(x)
+        x=self.encoder_conv((x_i.to(self.in_device if self.parallelized else x_i)))
+        x=self.flatten((x.to('cpu') if self.parallelized else x))
 
         #inference
-        z_x,z_x_mean,z_x_logvar=self.Q.z_infer(x)
-        w_x,w_x_mean,w_x_logvar=self.Q.w_infer(x)
-        py_wz=self.Q.y_gener(w_x,z_x) #[batch,K]
+        z_x,z_x_mean,z_x_logvar=self.Q.z_infer((x.to('cuda:1') if self.parallelized else x))
+        w_x,w_x_mean,w_x_logvar=self.Q.w_infer((x.to('cuda:1') if self.parallelized else x))
+        py_wz=self.Q.y_gener(
+                            (w_x.to('cuda:1') if self.parallelized else w_x),
+                            (z_x.to('cuda:1') if self.parallelized else z_x)
+                            ) #[batch,K]
         #Generation
-        z_wy,z_wy_mean,z_wy_logvar=self.P.z_gener(w_x) #[batch,K,z_dim]
-        x_mean=self.P.x_gener(z_x)
+        z_wy,z_wy_mean,z_wy_logvar=self.P.z_gener((w_x.to('cuda:2') if self.parallelized else w_x)) #[batch,K,z_dim]
+        x_mean=self.P.x_gener((z_x.to('cuda:2') if self.parallelized else z_x))
 
         #CNN decoding
-        x_mean=self.flatten(x_mean)
-        x_mean=self.decoder_conv(x_mean)
+        x_mean=self.flatten((x_mean.to('cpu') if self.parallelized else x_mean))
+        x_mean=self.decoder_conv((x_mean.to('cuda:3') if self.parallelized else x_mean))
 
-        reconstruction=self.reconstruction_loss(x_mean,x_i)
-        conditional_prior=self.conditional_prior(z_x,z_x_mean,z_x_logvar,py_wz,z_wy,z_wy_mean,z_wy_logvar)
-        w_prior=self.w_prior(w_x_mean,w_x_logvar)
-        y_prior=self.y_prior(py_wz)
+        reconstruction=self.reconstruction_loss(
+            (x_mean.to("cuda:0") if self.parallelized else x_mean),
+            (x_i.to("cuda:0") if self.parallelized else x_i)
+            )
+        conditional_prior=self.conditional_prior(
+            (z_x.to("cuda:0") if self.parallelized else z_x),
+            (z_x_mean.to("cuda:0") if self.parallelized else z_x_mean),
+            (z_x_logvar.to("cuda:0") if self.parallelized else z_x_logvar),
+            (py_wz.to("cuda:0") if self.parallelized else py_wz),
+            (z_wy.to("cuda:0") if self.parallelized else z_wy),
+            (z_wy_mean.to("cuda:0") if self.parallelized else z_wy_mean),
+            (z_wy_logvar.to("cuda:0") if self.parallelized else z_wy_logvar)
+            )
+        w_prior=self.w_prior(
+            (w_x_mean.to("cuda:0") if self.parallelized else w_x_mean),
+            (w_x_logvar.to("cuda:0") if self.parallelized else w_x_logvar)
+            )
+        y_prior=self.y_prior((py_wz.to("cuda:0") if self.parallelized else py_wz))
         loss=reconstruction\
             +conditional_prior\
             +w_prior\
