@@ -17,7 +17,7 @@ class datapaltas(Dataset):
         y = self.df.iloc[index,self.y_idx]
         #print(y)
         y = torch.Tensor([y]).long()
-        return X, y
+        return {'x':X, 'y':y}
     
     def __len__(self):
         return self.df.shape[0]
