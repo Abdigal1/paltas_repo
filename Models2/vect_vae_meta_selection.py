@@ -12,7 +12,9 @@ from tqdm import tqdm
 
 
 def avr(train_ids, test_ids, n_f, ep, a):
-    
+    l_v = np.zeros((ep,))
+    a_v = np.zeros((ep,))
+    f_v = np.zeros((ep,))
     #print(f'Fold {fold+1}')
     #print('------------------------')
     #print(a[0].dtype)
@@ -22,7 +24,7 @@ def avr(train_ids, test_ids, n_f, ep, a):
     test_subsampler = torch.utils.data.SubsetRandomSampler(test_ids)
     train_loader = torch.utils.data.DataLoader(
                         a, 
-                        batch_size=128, sampler=train_subsampler)
+                        batch_size=256, sampler=train_subsampler)
     test_loader = torch.utils.data.DataLoader(
                         a,
                         batch_size=1, sampler=test_subsampler)
@@ -66,20 +68,20 @@ def avr(train_ids, test_ids, n_f, ep, a):
                 acc_test += acc.item()
                 f1_test += f1.item()
 
-        #itt.set_description("Acc train: %.2f Acc test: %.2f F1 train: %.2f F1 test: %.2f" % (acc_train/len(train_loader), acc_test/len(test_loader), f1_train/len(train_loader), f1_test/len(test_loader)))
+            l_v[i] = loss_epoch
+            a_v[i] = acc_test/len(test_loader)
+            f_v[i] = f1_test/len(test_loader)
+        itt.set_description("Acc train: %.2f Acc test: %.2f F1 train: %.2f F1 test: %.2f" % (acc_train/len(train_loader), acc_test/len(test_loader), f1_train/len(train_loader), f1_test/len(test_loader)))
 
-        l_v = loss_epoch
-        a_v = acc_test/len(test_loader)
-        f_v = f1_test/len(test_loader)
     return l_v, a_v, f_v
 
-avr_v = np.vectorize(avr, otypes=[object],signature="(i),(j),(),(),(k)->(),(),()")
+avr_v = np.vectorize(avr,signature="(i),(j),(),(),(k)->(a),(b),(c)")
 
 
 
 
 
-df = pd.read_csv('C:\\Users\\abdig\\Downloads\\metas\\gmvae_a1_2.csv', index_col=0)
+df = pd.read_csv('C:\\Users\\LENOVO\\Downloads\\\\GMVAE_A2_1.csv', index_col=0)
 df['Date']=[i[:-2] for i in df['Date'].values]
 a = ['29_marzo',
  '14_abril',
@@ -113,11 +115,11 @@ df.Date.replace(flies_dict, inplace=True)
 #df.columns = colist
 device = 'cpu'
 ##SELECCION DE N Y CLASES
-N_data = df[(df['Class']=='N_Deficiencia') | (df['Class']=='N_Control') | (df['Class']=='N_Exceso')]
+N_data = df[(df['Class']=='H50%') | (df['Class']=='H75%') | (df['Class']=='Control')]
 N_data = N_data.iloc[:-1, :]
 print(N_data.Class.unique())
 #N_data = N_data.iloc[:,:-1]
-n2clas={'N_Deficiencia':0, 'N_Control':1, 'N_Exceso':2}
+n2clas={'H50%':0, 'H75%':1, 'Control':2}
 N_data.Class.replace(n2clas, inplace=True)
 print(N_data.Class.unique())
 #print(N_data)
@@ -143,33 +145,18 @@ def train(idx, ep = 100):
     #print(avr(vec_train[0], vec_test[0], n_f, ep))
     #print(vec_train.shape, vec_test.shape)
     #print(f"AVER {n_f}")
-    lol = avr_v(vec_train, vec_test, n_f, ep, a)
-    print(lol)
-    #for train_ids, test_ids in skf.split(N_data, N_data.iloc[:,-1]):
-        #l_v = []
-        #a_v = []
-        #f_v = []
-        #print(avr(train_ids, test_ids, n_f, ep, a))
-            
-            #print(f'Loss {i+1}: {loss_epoch}')
-            #print(f'Acc {i+1}: {acc_epoch/len(train_loader)}')
-            #print(f'F1 {i+1}: {f1_epoch/len(train_loader)}')
-        #print(a_v, f_v)
-        #aux_f1_idx.append(f_v)
-        #aux_ac_idx.append(a_v)
-        
-    aux_ac_idx = np.array(aux_ac_idx)
-    aux_f1_idx = np.array(aux_f1_idx)
+    lvv, acv, f1v = avr_v(vec_train, vec_test, n_f, ep, a)
+    
     #print(aux_ac_idx, aux_f1_idx)
-    idx_result['f1'] = max(np.mean(aux_f1_idx, axis = 0))
-    idx_result['acc'] = max(np.mean(aux_ac_idx, axis = 0))
+    idx_result['f1'] = max(np.mean(f1v, axis = 0))
+    idx_result['acc'] = max(np.mean(acv, axis = 0))
     return idx_result
         #plt.figure(), plt.plot(l_v), plt.title('Loss by epoch')
         #plt.figure(), plt.plot(a_v), plt.title('Accuracy test by epoch')
         #plt.figure(), plt.plot(f_v), plt.title('F1 test by epoch')
         #plt.show()
     
-N_FEATURES = 33
+N_FEATURES = 45
 
 
 
@@ -181,30 +168,32 @@ def select_k_best(k = 10, ev = 'f1'):
     
     
     list_features = list(range(N_FEATURES))
-    initial_feat = []
-    while(len(initial_feat)<k):
+    initial_feat = list(range(N_FEATURES))
+    print(len(initial_feat), k)
+    print(len(initial_feat)>k)
+    while len(initial_feat)>k:
         selector = {}
         for i in list_features:
-            initial_feat.append(i)
+            initial_feat.remove(i)
             print(f"=======================================Using {initial_feat} ===============")
             res = train(initial_feat, ep = 100)
-            initial_feat.pop()
+            initial_feat.append(i)
             selector.update({i:res[ev]})
-            with open('nit_gm_vae.txt', mode='a') as f:
+            with open('ra.txt', mode='a') as f:
                 f.write(str(res))
                 f.write('\n')
 
-        best_feature = max(selector, key=selector.get)
-        initial_feat.append(best_feature)
-        list_features.remove(best_feature)
+        worst_feature = min(selector, key=selector.get)
+        initial_feat.remove(worst_feature)
+        list_features.remove(worst_feature)
         print("================================================")
-        print(f"=================ADEDD {max(selector, key=selector.get)} TO BEST FEATURES ==========")
-        print(f"================={ev} = {selector[best_feature]} ================================")
+        print(f"=================REMOVED {min(selector, key=selector.get)} FROM FEATURES ==========")
+        print(f"================={ev} = {selector[worst_feature]} ================================")
 
     
     print(f"FINAL FEATURES")
     print(initial_feat)
     
 
-select_k_best(k = 30)
+select_k_best(k = 10)
 
