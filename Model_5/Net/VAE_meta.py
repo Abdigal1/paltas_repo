@@ -159,7 +159,8 @@ class b_encodeco(nn.Module):
         x1=self.encoder_conv(x1)
         x1=self.flatten(x1)
         #Pre estimation
-        x=self.pre_encoder(torch.concat((x1,x2.squeeze(1).squeeze(1)),dim=1))
+        x=torch.cat((x1,x2.squeeze(1).squeeze(1)),dim=1)
+        x=self.pre_encoder(x)
 
         #FCNN
         mu=self.encoder_NN_mu(x)

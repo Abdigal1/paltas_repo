@@ -1,0 +1,22 @@
+    d_tt=transforms.Compose([
+        phantom_segmentation(False,True),
+        multi_image_resize(ImType=['PhantomRGB'],size=(512,512)),
+        hue_transform(),
+        multi_ToTensor(ImType=['PhantomRGB']),
+        only_tensor_transform()
+        ])
+
+    model=GMVAE(image_dim=int(512),
+        image_channels=1,
+        repr_sizes=[3,6,12,24,48],
+        layer_sizes=[200,100,50],
+        w_latent_space_size=10,
+        z_latent_space_size=10,
+        y_latent_space_size=12,
+        conv_kernel_size=7,
+        conv_pooling=False,
+        activators=[nn.Sigmoid(),nn.LeakyReLU(),nn.LeakyReLU(),nn.LeakyReLU(),nn.LeakyReLU()],
+        conv_batch_norm=True,
+        NN_batch_norm=True,
+        stride=2,
+        device="cpu")
