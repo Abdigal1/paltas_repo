@@ -37,7 +37,7 @@ class SimpleClassification(nn.Module):
         self.l3 = nn.Linear(64, 32)
         self.l4 = nn.Linear(32, 16)
         self.l5 = nn.Linear(16, n_classes)
-        
+        self.dropout = nn.Dropout(0.25)
         self.relu = nn.ReLU()
         self.batchnorm1 = nn.BatchNorm1d(128)
         self.batchnorm2 = nn.BatchNorm1d(64)
@@ -46,7 +46,9 @@ class SimpleClassification(nn.Module):
     
     def forward(self, x):
         x = self.relu(self.batchnorm1(self.l1(x)))
+        x = self.dropout(x)
         x = self.relu(self.batchnorm2(self.l2(x)))
+        x = self.dropout(x)
         x = self.relu(self.batchnorm3(self.l3(x)))
         x = self.relu(self.batchnorm4(self.l4(x)))
         return self.l5(x)

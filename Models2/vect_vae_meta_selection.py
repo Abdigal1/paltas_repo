@@ -81,7 +81,7 @@ avr_v = np.vectorize(avr,signature="(i),(j),(),(),(k)->(a),(b),(c)")
 
 
 
-df = pd.read_csv('C:\\Users\\LENOVO\\Downloads\\\\GMVAE_A2_1.csv', index_col=0)
+df = pd.read_csv('/home/liiarpi-01/Desktop/VAE_A1_7.csv', index_col=0)
 df['Date']=[i[:-2] for i in df['Date'].values]
 a = ['29_marzo',
  '14_abril',
@@ -115,13 +115,14 @@ df.Date.replace(flies_dict, inplace=True)
 #df.columns = colist
 device = 'cpu'
 ##SELECCION DE N Y CLASES
-N_data = df[(df['Class']=='H50%') | (df['Class']=='H75%') | (df['Class']=='Control')]
-N_data = N_data.iloc[:-1, :]
+N_data = df[(df['Class']=='N_Deficiencia') | (df['Class']=='N_Control') | (df['Class']=='N_Exceso')]
+#N_data = N_data.iloc[:-1, :]
 print(N_data.Class.unique())
 #N_data = N_data.iloc[:,:-1]
-n2clas={'H50%':0, 'H75%':1, 'Control':2}
+n2clas={'N_Deficiencia':0, 'N_Control':1, 'N_Exceso':2}
 N_data.Class.replace(n2clas, inplace=True)
 print(N_data.Class.unique())
+print(N_data)
 #print(N_data)
 def train(idx, ep = 100):
     idx_result = {'idx_used':copy(idx), 'f1': 0, 'acc':0}
@@ -156,7 +157,7 @@ def train(idx, ep = 100):
         #plt.figure(), plt.plot(f_v), plt.title('F1 test by epoch')
         #plt.show()
     
-N_FEATURES = 45
+N_FEATURES = 25
 
 
 
@@ -168,32 +169,30 @@ def select_k_best(k = 10, ev = 'f1'):
     
     
     list_features = list(range(N_FEATURES))
-    initial_feat = list(range(N_FEATURES))
-    print(len(initial_feat), k)
-    print(len(initial_feat)>k)
-    while len(initial_feat)>k:
+    initial_feat = []
+    while(len(initial_feat)<k):
         selector = {}
         for i in list_features:
-            initial_feat.remove(i)
-            print(f"=======================================Using {initial_feat} ===============")
-            res = train(initial_feat, ep = 100)
             initial_feat.append(i)
+            print(f"=======================================Using {initial_feat} ===============")
+            res = train(initial_feat, ep = 120)
+            initial_feat.pop()
             selector.update({i:res[ev]})
-            with open('ra.txt', mode='a') as f:
+            with open('nit_vae_a1_7_forward.txt', mode='a') as f:
                 f.write(str(res))
                 f.write('\n')
 
-        worst_feature = min(selector, key=selector.get)
-        initial_feat.remove(worst_feature)
-        list_features.remove(worst_feature)
+        best_feature = max(selector, key=selector.get)
+        initial_feat.append(best_feature)
+        list_features.remove(best_feature)
         print("================================================")
-        print(f"=================REMOVED {min(selector, key=selector.get)} FROM FEATURES ==========")
-        print(f"================={ev} = {selector[worst_feature]} ================================")
+        print(f"=================ADEDD {max(selector, key=selector.get)} TO BEST FEATURES ==========")
+        print(f"================={ev} = {selector[best_feature]} ================================")
 
     
     print(f"FINAL FEATURES")
     print(initial_feat)
     
 
-select_k_best(k = 10)
+select_k_best(k = 20)
 
