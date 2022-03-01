@@ -12,6 +12,7 @@ from tqdm import tqdm
 
 
 def avr(train_ids, test_ids, n_f, ep, a):
+    t_v = np.zeros((ep,))
     l_v = np.zeros((ep,))
     a_v = np.zeros((ep,))
     f_v = np.zeros((ep,))
@@ -35,7 +36,7 @@ def avr(train_ids, test_ids, n_f, ep, a):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr = 0.001)
     EPOCHS = ep
-    itt = tqdm(range(EPOCHS))
+    itt = range(EPOCHS)
     for i in itt:
         loss_epoch = 0
         acc_train, acc_test = 0.0, 0.0
@@ -71,17 +72,18 @@ def avr(train_ids, test_ids, n_f, ep, a):
             l_v[i] = loss_epoch
             a_v[i] = acc_test/len(test_loader)
             f_v[i] = f1_test/len(test_loader)
-        itt.set_description("Acc train: %.2f Acc test: %.2f F1 train: %.2f F1 test: %.2f" % (acc_train/len(train_loader), acc_test/len(test_loader), f1_train/len(train_loader), f1_test/len(test_loader)))
+            t_v[i] = acc_train/len(train_loader)
+        #itt.set_description("Acc train: %.2f Acc test: %.2f F1 train: %.2f F1 test: %.2f" % (acc_train/len(train_loader), acc_test/len(test_loader), f1_train/len(train_loader), f1_test/len(test_loader)))
 
-    return l_v, a_v, f_v
+    return l_v, a_v, f_v, t_v
 
-avr_v = np.vectorize(avr,signature="(i),(j),(),(),(k)->(a),(b),(c)")
-
-
-
+avr_v = np.vectorize(avr,signature="(i),(j),(),(),(k)->(a),(b),(c),(d)")
 
 
-df = pd.read_csv('/home/liiarpi-01/Desktop/VAE_A1_7.csv', index_col=0)
+
+
+
+df = pd.read_csv('C:\\Users\\LENOVO\\Downloads\\VAE_11.csv', index_col=0)
 df['Date']=[i[:-2] for i in df['Date'].values]
 a = ['29_marzo',
  '14_abril',
@@ -116,6 +118,8 @@ df.Date.replace(flies_dict, inplace=True)
 device = 'cpu'
 ##SELECCION DE N Y CLASES
 N_data = df[(df['Class']=='N_Deficiencia') | (df['Class']=='N_Control') | (df['Class']=='N_Exceso')]
+N_data = N_data.append(N_data.iloc[-1, :])
+
 #N_data = N_data.iloc[:-1, :]
 print(N_data.Class.unique())
 #N_data = N_data.iloc[:,:-1]
@@ -146,18 +150,19 @@ def train(idx, ep = 100):
     #print(avr(vec_train[0], vec_test[0], n_f, ep))
     #print(vec_train.shape, vec_test.shape)
     #print(f"AVER {n_f}")
-    lvv, acv, f1v = avr_v(vec_train, vec_test, n_f, ep, a)
+    lvv, acv, f1v, tav = avr_v(vec_train, vec_test, n_f, ep, a)
     
     #print(aux_ac_idx, aux_f1_idx)
     idx_result['f1'] = max(np.mean(f1v, axis = 0))
     idx_result['acc'] = max(np.mean(acv, axis = 0))
+    idx_result['train_acc'] = max(np.mean(tav, axis=0))
     return idx_result
         #plt.figure(), plt.plot(l_v), plt.title('Loss by epoch')
         #plt.figure(), plt.plot(a_v), plt.title('Accuracy test by epoch')
         #plt.figure(), plt.plot(f_v), plt.title('F1 test by epoch')
         #plt.show()
     
-N_FEATURES = 25
+N_FEATURES = 101
 
 
 
@@ -172,13 +177,14 @@ def select_k_best(k = 10, ev = 'f1'):
     initial_feat = []
     while(len(initial_feat)<k):
         selector = {}
-        for i in list_features:
+        for i in tqdm(list_features):
             initial_feat.append(i)
             print(f"=======================================Using {initial_feat} ===============")
             res = train(initial_feat, ep = 120)
+            print(res)
             initial_feat.pop()
             selector.update({i:res[ev]})
-            with open('nit_vae_a1_7_forward.txt', mode='a') as f:
+            with open('nit_vae_11.txt', mode='a') as f:
                 f.write(str(res))
                 f.write('\n')
 
@@ -194,5 +200,5 @@ def select_k_best(k = 10, ev = 'f1'):
     print(initial_feat)
     
 
-select_k_best(k = 20)
+select_k_best(k = 100)
 
