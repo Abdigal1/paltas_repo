@@ -76,10 +76,14 @@ def parallel_gen_metadata_from_VAE(data_base,out_meta_dir,model,batch_size,num_w
                                              drop_last=False)
     for idx, batch in tqdm(enumerate(dataloader_eval),desc="latent_vars"):
         iargs=(batch[arg].to(device_in) for arg in args)
-        fl=model.encoder_conv(*(iargs))
-        fl_=model.flatten(fl)
-        fl_u=model.encoder_NN_mu(fl_)
-        fl_sig=model.encoder_NN_sig(fl_)
+        x2=batch[args[1]].to(device_in)
+        x1=model.encoder_conv(batch[args[0]].to(device_in))
+        x1=model.flatten(x1)
+
+        x=model.pre_encoder(torch.concat((x1,x2.squeeze(1).squeeze(1)),dim=1))
+
+        fl_u=model.encoder_NN_mu(x)
+        fl_sig=model.encoder_NN_sig(x)
 
         #Batch,Size
         v_save_generation(fl_u.cpu().detach().numpy(),
