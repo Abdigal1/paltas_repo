@@ -156,26 +156,31 @@ class b_encodeco(nn.Module):
         return z,mu.to('cuda:0'),sig.to('cuda:0')
 
     def forward_non_uniform(self,x1,x2):
-        x1=self.encoder_conv(x1)
-        x1=self.flatten(x1)
+        x1=self.encoder_conv((x1.to("cuda:0") if self.parallelized else x1))
+        x1=self.flatten((x1.to("cpu") if self.parallelized else x1))
         #Pre estimation
-        x=torch.cat((x1,x2.squeeze(1).squeeze(1)),dim=1)
-        x=self.pre_encoder(x)
+        x=torch.cat(((x1.to("cpu") if self.parallelized else x1),
+        x2.squeeze(1).squeeze(1).to("cpu")),
+        dim=1)
+        x=self.pre_encoder((x.to("cuda:1") if self.parallelized else x))
 
         #FCNN
-        mu=self.encoder_NN_mu(x)
-        sig=self.encoder_NN_sig(x)
+        mu=self.encoder_NN_mu((x.to("cuda:1") if self.parallelized else x))
+        sig=self.encoder_NN_sig((x.to("cuda:1") if self.parallelized else x))
         
-        z12=self.reparametrization(mu,sig)
+        #z12=self.reparametrization((mu.to(self.in_device) if self.parallelized else mu),
+        #(sig.to(self.in_device) if self.parallelized else sig))
+        z12=self.reparametrization((mu),
+        (sig))
         #Pre estimation inv
-        z12=self.decoder_NN(z12)
+        z12=self.decoder_NN((z12.to("cuda:2") if self.parallelized else z12))
 
-        z12=self.post_encoder(z12) #TODO: split image and other input latent variables
+        z12=self.post_encoder((z12.to("cuda:2") if self.parallelized else z12)) #TODO: split image and other input latent variables
         z1,z2=torch.split(z12,[self.NN_input,self.non_uniform_input_dim],dim=1)
 
         
-        z1=self.flatten(z1)
-        z1=self.decoder_conv(z1)
+        z1=self.flatten((z1.to("cpu") if self.parallelized else z1))
+        z1=self.decoder_conv((z1.to("cuda:3") if self.parallelized else z1))
         
         return z1,z2,mu,sig
 
@@ -188,27 +193,17 @@ class b_encodeco(nn.Module):
         KLD=-0.5*torch.mean(1+z_logvar-z_mean.pow(2)-z_logvar.exp())
         return KLD
     
-#    def ELBO(self,x):
-#        x_r,z_mean,z_logvar=self.forward(x)
-#
-#        reconstruction=self.reconstruction_loss(x_r,x)
-#        KLD=self.KLD_loss(z_mean,z_logvar)
-#
-#        loss=reconstruction\
-#            +KLD
-#
-#        #BUILD LOSSES DICT
-#        self.losses['KLD']=KLD
-#        self.losses['reconstruction']=reconstruction
-#        self.losses["total_loss"]=loss
-#        
-#        return self.losses
-    
     def ELBO(self,x1,x2):
-        x1_r,x2_r,z_mean,z_logvar=self.forward_non_uniform(x1,x2)
+        x1_r,x2_r,z_mean,z_logvar=self.forward_non_uniform(
+            (x1.to('cuda:0') if self.parallelized else x1),
+            (x2.to('cuda:0') if self.parallelized else x2))
 
-        reconstruction=self.reconstruction_loss(x1_r,x1)+self.reconstruction_loss(x2_r,x2.squeeze(1).squeeze(1))
-        KLD=self.KLD_loss(z_mean,z_logvar)
+        reconstruction=self.reconstruction_loss(x1_r.to('cuda:0') if self.parallelized else x1_r,
+        x1.to('cuda:0') if self.parallelized else x1)\
+            +self.reconstruction_loss(x2_r.to('cuda:0') if self.parallelized else x2_r,
+            x2.squeeze(1).squeeze(1).to('cuda:0') if self.parallelized else x2.squeeze(1).squeeze(1))
+        KLD=self.KLD_loss(z_mean.to('cuda:0') if self.parallelized else z_mean,
+        z_logvar.to('cuda:0') if self.parallelized else z_logvar)
 
         loss=reconstruction\
             +KLD
