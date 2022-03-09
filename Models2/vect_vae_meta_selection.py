@@ -83,7 +83,7 @@ avr_v = np.vectorize(avr,signature="(i),(j),(),(),(k)->(a),(b),(c),(d)")
 
 
 
-df = pd.read_csv('C:\\Users\\LENOVO\\Downloads\\VAE_11.csv', index_col=0)
+df = pd.read_csv('/home/liiarpi-01/Desktop/VAE_A1_7.csv', index_col=0)
 df['Date']=[i[:-2] for i in df['Date'].values]
 a = ['29_marzo',
  '14_abril',
@@ -118,7 +118,7 @@ df.Date.replace(flies_dict, inplace=True)
 device = 'cpu'
 ##SELECCION DE N Y CLASES
 N_data = df[(df['Class']=='N_Deficiencia') | (df['Class']=='N_Control') | (df['Class']=='N_Exceso')]
-N_data = N_data.append(N_data.iloc[-1, :])
+#N_data = N_data.append(N_data.iloc[-1, :])
 
 #N_data = N_data.iloc[:-1, :]
 print(N_data.Class.unique())
@@ -162,7 +162,8 @@ def train(idx, ep = 100):
         #plt.figure(), plt.plot(f_v), plt.title('F1 test by epoch')
         #plt.show()
     
-N_FEATURES = 101
+N_FEATURES = N_data.shape[1] - 1
+print(N_FEATURES)
 
 
 
@@ -184,7 +185,7 @@ def select_k_best(k = 10, ev = 'f1'):
             print(res)
             initial_feat.pop()
             selector.update({i:res[ev]})
-            with open('nit_vae_11.txt', mode='a') as f:
+            with open('nit_vae_a1_7_b64.txt', mode='a') as f:
                 f.write(str(res))
                 f.write('\n')
 
@@ -200,5 +201,5 @@ def select_k_best(k = 10, ev = 'f1'):
     print(initial_feat)
     
 
-select_k_best(k = 100)
+select_k_best(k = N_FEATURES-4)
 
